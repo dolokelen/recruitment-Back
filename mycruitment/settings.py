@@ -121,3 +121,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+#CUSTOM SETTINGS. March 21, 2024 after 3pm [This project was created]
+AUTH_USER_MODEL = 'core.User'
