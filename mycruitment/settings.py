@@ -147,7 +147,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ),
     'COERCE_DECIMAL_TO_STRING': False,
 }
@@ -166,7 +166,7 @@ DJOSER = {
     # 'ACTIVATION_URL': 'activate/{uid}/{token}',
     # 'SEND_ACTIVATION_EMAIL': True ,
 
-    # 'SERIALIZERS': {
-    #     'user_create': 'core.serializers.UserCreateSerializer'
-    # }
+    'SERIALIZERS': {
+        'user_create': 'core.serializers.UserCreateSerializer'
+    }
 }
