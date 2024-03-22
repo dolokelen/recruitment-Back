@@ -9,8 +9,12 @@ django-debug-toolbar = "*"
 djangorestframework = "*"
 djoser = "*"
 djangorestframework-simplejwt = "*"
+drf-nested-routers = "*"
 
 [dev-packages]
+pytest = "*"
+pytest-django = "*"
+model-bakery = "*"
 
 [requires]
 python_version = "3.11"
