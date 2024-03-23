@@ -3,13 +3,12 @@ from rest_framework import serializers
 
 
 class UserCreateSerializer(BaseUserCreateSerializer):
-    full_name = serializers.SerializerMethodField()
     confirm_password = serializers.CharField(
         write_only=True, required=True, style={'input_type': 'password'})
 
     class Meta(BaseUserCreateSerializer.Meta):
         fields = ['id', 'email', 'first_name',
-                  'last_name', 'full_name', 'password', 'confirm_password']
+                  'last_name', 'password', 'confirm_password']
 
     def validate(self, attrs):
         """Ensures that the passwords match before proceeding to the creation"""
@@ -25,7 +24,3 @@ class UserCreateSerializer(BaseUserCreateSerializer):
             user.set_password(password)
             user.save()
         return user
-
-    def get_full_name(self, user):
-        """For now it only returns fullname with post request."""
-        return user.get_full_name()
