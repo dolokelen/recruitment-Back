@@ -15,6 +15,7 @@ drf-nested-routers = "*"
 pytest = "*"
 pytest-django = "*"
 model-bakery = "*"
+pytest-mock = "*"
 
 [requires]
 python_version = "3.11"

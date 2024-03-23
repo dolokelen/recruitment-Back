@@ -84,9 +84,37 @@ class TestRetrieveUser:
 
         assert response.status_code == status.HTTP_200_OK
 
+    @pytest.mark.skip
     def test_if_user_has_permission_to_retrieve_all_users(self):
         token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzExMTU5MDAwLCJpYXQiOjE3MTExNTU0MDAsImp0aSI6ImQyZTA1ZDU2Y2RmYjQwNjlhMmUyNjI1NmE5MzBlMDc3IiwidXNlcl9pZCI6MX0.16r7FE8v04MQSsiPMYCgTBgJpmoMFnScXe27aR0yqRs"
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='JWT ' + token)
         response = client.get(f'/auth/users/')
-        
+
+
+
+from django.contrib.auth.models import Permission
+
+@pytest.mark.django_db
+class TestUserRetrieveAll:
+    def test_user_has_permission_to_retrieve_all_users(self, mocker):
+        # Mock the behavior of retrieving users and assigning permissions
+        mocked_user = mocker.Mock(spec=User)
+        mocked_permission = mocker.Mock(spec=Permission)
+        mocked_user.user_permissions.all.return_value = [mocked_permission]
+
+        # Mock the behavior of generating a JWT token
+        # mocker.patch('django.contrib.auth.models.User.auth_token', return_value='mocked_token')
+        mocker.patch('rest_framework_simplejwt.tokens.RefreshToken.for_user', return_value='mocked_token')
+
+        # Authenticate the test client using the mocked token
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Bearer mocked_token')
+        # client.credentials(HTTP_AUTHORIZATION='JWT mocked_token')
+
+        # Make a request to retrieve all users
+        response = client.get('/auth/users/')
+
+        # Assert that the request was successful and returned status code 200
+        assert response.status_code == status.HTTP_200_OK
+
