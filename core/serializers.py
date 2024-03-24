@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Group, Permission
 from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer
 from rest_framework import serializers
 
@@ -24,3 +25,17 @@ class UserCreateSerializer(BaseUserCreateSerializer):
             user.set_password(password)
             user.save()
         return user
+
+
+class PermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Permission
+        fields = ['id', "name"]
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    permissions = PermissionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Group
+        fields = ['id', 'name', 'permissions']
