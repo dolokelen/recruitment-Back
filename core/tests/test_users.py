@@ -57,7 +57,7 @@ class TestUser:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_if_payload_is_invalid_return_400(self, post):
-        response = post(USERS_ENDPOINT, user_payload(first_name=''))
+        response = post(USERS_ENDPOINT, user_payload(password=''))
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
