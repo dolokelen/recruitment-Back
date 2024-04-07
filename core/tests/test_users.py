@@ -56,10 +56,15 @@ class TestUser:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_if_payload_is_invalid_return_400(self, post):
-        response = post(USERS_ENDPOINT, user_payload(password=''))
+    def test_if_first_name_is_optional_return_200(self, post):
+        response = post(USERS_ENDPOINT, user_payload(first_name=''))
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_201_CREATED
+    
+    def test_if_last_name_is_optional_return_200(self, post):
+        response = post(USERS_ENDPOINT, user_payload(last_name=''))
+
+        assert response.status_code == status.HTTP_201_CREATED
 
     def test_if_email_exist_return_400(self, post):
         existing_user = baker.prepare(User)
