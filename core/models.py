@@ -42,7 +42,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, blank=False)
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
-
+    # is_active = models.BooleanField(default=False) #Will be activated later when the user confirms their email
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
