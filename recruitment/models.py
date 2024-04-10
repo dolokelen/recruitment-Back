@@ -130,7 +130,7 @@ class Employee(Person, QualificationChoice):
 
 class ApplicationStage(models.Model):
     STATUS_CHOICES = (
-        ('under review', 'Under Review'),
+        ('under review', 'Under review'),
         ('pending', 'Pending'),
         ('unsuccessful', 'Unsuccessful'),
         ('successful', 'Successful'),
@@ -167,7 +167,7 @@ class ApplicationStage(models.Model):
     is_rejected = models.BooleanField(default=False)
     is_current = models.BooleanField(default=False)
     # Create signal to listen for any of the CURD operations and create an AuditTrial instance.
-    employee = models.ForeignKey(Employee, on_delete=models.PROTECT)
+    employee = models.ForeignKey(Employee, on_delete=models.PROTECT, related_name='stages')
     created_at = models.DateTimeField(auto_now_add=True)
     # This will allow me to delete all instances of this model
     # for a particular recruitment cycle
@@ -228,17 +228,17 @@ class Cohort(models.Model):
     # ApplicationDate and them make the previous PYP old
     is_currnt = models.BooleanField(default=True)
     # auto all the below fields from 'RejectedApplication'
-    rejected_male_count = models.CharField(max_length=255)
-    rejected_female_count = models.CharField(max_lengt=255)
-    rejected_police_clearance_count = models.CharField(max_length=255)
-    rejected_national_id_count = models.CharField(max_length=255)
-    rejected_diploma_count = models.CharField(max_length=255)
-    rejected_transcript = models.CharField(max_length=255)
-    rejected_exams_count = models.CharField(max_length=255)
-    rejected_interview_count = models.CharField(max_length=255)
-    rejected_job_readiness_count = models.CharField(max_length=255)
-    rejection_absent_count = models.CharField(max_length=255)
-    rejection_other_count = models.CharField(max_length=255)
+    rejected_male_count = models.PositiveIntegerField()
+    rejected_female_count = models.PositiveIntegerField()
+    rejected_police_clearance_count = models.PositiveIntegerField()
+    rejected_national_id_count = models.PositiveIntegerField()
+    rejected_diploma_count = models.PositiveIntegerField()
+    rejected_transcript = models.PositiveIntegerField()
+    rejected_exams_count = models.PositiveIntegerField()
+    rejected_interview_count = models.PositiveIntegerField()
+    rejected_job_readiness_count = models.PositiveIntegerField()
+    rejection_absent_count = models.PositiveIntegerField()
+    rejection_other_count = models.PositiveIntegerField()
 
 
 class Pyp(Person):  # Only create instance of this model if status is 'successful'

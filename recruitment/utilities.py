@@ -5,7 +5,7 @@ from django.db import connection
 def image_upload_path(instance, filename):
     instance_id = str(instance.user.id)
     _, extension = os.path.splitext(filename)
-    file_path = f'cruitment/images/{instance_id}{extension}'
+    file_path = f'recruitment/images/{instance_id}{extension}'
 
     return file_path
 
