@@ -162,7 +162,7 @@ class ApplicationStage(models.Model):
         ApplicationDate, on_delete=models.PROTECT, related_name='stages')
     applicants = models.ManyToManyField(Applicant, related_name='stages')
     rejection_reason = models.CharField(
-        max_lenght=18, choices=REJECTION_REASON_CHOICES, null=True, blank=True)
+        max_length=18, choices=REJECTION_REASON_CHOICES, null=True, blank=True)
     other_rejection_reason = models.TextField(null=True, blank=True)
     is_rejected = models.BooleanField(default=False)
     is_current = models.BooleanField(default=False)
@@ -194,7 +194,7 @@ class ApplicationStage(models.Model):
 class ApplicantStatusAuditTrial(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.PROTECT)
     applicant = models.ForeignKey(
-        Applicant, on_delete=models.SET_NULL, related_name='audits')
+        Applicant, on_delete=models.PROTECT, related_name='audits')
     previous_status = models.CharField(max_length=255)
     new_status = models.CharField(max_length=255)
     action = models.CharField(max_length=255)
@@ -251,7 +251,7 @@ class Pyp(Person):  # Only create instance of this model if status is 'successfu
     id_number = models.CharField(
         max_length=255, default=pyp_id_number_generator)
     placement_date = models.DateField(null=True, blank=True)
-    tor = models.FileField(upload_path=tor_upload_path, null=True, blank=True)
+    tor = models.FileField(upload_to=tor_upload_path, null=True, blank=True)
     employement_date = models.DateField(null=True, blank=True)
     position = models.CharField(max_length=100, default='PYP Fellow')
     # When the 'current' ApplicationStage.name == 'palcement'
