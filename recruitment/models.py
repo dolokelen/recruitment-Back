@@ -89,6 +89,8 @@ class Applicant(Person):
         max_length=255, default=applicant_id_number_generator)
     application_date = models.ForeignKey(
         ApplicationDate, on_delete=models.PROTECT, related_name='applicants')
+    status = models.CharField(max_length=100, default='Under review')
+    rejection_reason = models.CharField(max_length=255, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
@@ -113,18 +115,17 @@ class QualificationChoice(models.Model):
 
 
 class Employee(Person, QualificationChoice):
-    EMPLOYEE_CHOICES = (
+    EMPLOYMENT_CHOICES = (
         ('internship', 'Internship'),
         ('part timer', 'Part Timer'),
         ('full timer', 'Full Timer')
     )
-    employment = models.CharField(max_length=255, choices=EMPLOYEE_CHOICES)
+    employment = models.CharField(max_length=255, choices=EMPLOYMENT_CHOICES)
     position = models.CharField(max_length=255)
     supervisor = models.ForeignKey(
         'self', null=True, blank=True, on_delete=models.SET_NULL)
     salary = models.DecimalField(max_digits=6, decimal_places=2)
     exit_date = models.DateField(null=True)
-    created_at = models.DateField()
 
 
 class ApplicationStage(models.Model):
@@ -143,7 +144,6 @@ class ApplicationStage(models.Model):
         ('placement', 'Placement')
     )
     REJECTION_REASON_CHOICES = (
-        ('none', 'None')  # Not included in the Form only used in the save() method below
         ('police clearance', 'Police Clearance'),
         ('national id', 'National ID'),
         ('diploma', 'Diploma'),
@@ -152,7 +152,7 @@ class ApplicationStage(models.Model):
         ('interview', 'Interview'),
         ('job readiness', 'Job Readiness'),
         ('absent', 'Absent'),
-        ('documents', 'Document'),
+        ('document', 'Document'),
         ('disorderly conduct', 'Disorderly Conduct'),
         ('other', 'Other')
     )
@@ -162,7 +162,7 @@ class ApplicationStage(models.Model):
         ApplicationDate, on_delete=models.PROTECT, related_name='stages')
     applicants = models.ManyToManyField(Applicant, related_name='stages')
     rejection_reason = models.CharField(
-        max_lenght=18, choices=REJECTION_REASON_CHOICES)
+        max_lenght=18, choices=REJECTION_REASON_CHOICES, null=True, blank=True)
     other_rejection_reason = models.TextField(null=True, blank=True)
     is_rejected = models.BooleanField(default=False)
     is_current = models.BooleanField(default=False)
@@ -181,20 +181,16 @@ class ApplicationStage(models.Model):
                     is_current=True)
                 previous_stage.update(is_current=False)
 
-                self.rejection_reason = 'None'
-                self.name = 'publicity'
-                self.status = 'under review'
                 instance = ApplicationDate.objects.get(is_current=True)
                 self.application_date = instance
-
-            else:
-                if self.rejection_reason != 'Other':
-                    self.other_rejection_reason = None
+            
+            if self.rejection_reason != 'Other':
+                self.other_rejection_reason = None
 
             return super().save(*args, **kwargs)
 
 
-# Use the 'Before save, after save signals of ApplicationStage
+# Use the 'pre_save and post_save' signals of ApplicationStage
 class ApplicantStatusAuditTrial(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.PROTECT)
     applicant = models.ForeignKey(
@@ -251,34 +247,40 @@ class Pyp(Person):  # Only create instance of this model if status is 'successfu
     # with that Applicant who was successful.
     # Duplicate all fields of Application here
     cohort = models.ForeignKey(
-        Cohort, on_delete=models.PROTECT, related_name='cohorts')
+        Cohort, on_delete=models.PROTECT, related_name='pyps')
     id_number = models.CharField(
         max_length=255, default=pyp_id_number_generator)
-    placement_date = models.DateField(null=True)
+    placement_date = models.DateField(null=True, blank=True)
     tor = models.FileField(upload_path=tor_upload_path, null=True, blank=True)
-    employement_date = models.DateField(null=True)
-    position = models.CharField(max_length=255, default='PYP Fellow')
+    employement_date = models.DateField(null=True, blank=True)
+    position = models.CharField(max_length=100, default='PYP Fellow')
     # When the 'current' ApplicationStage.name == 'palcement'
     # then all previous Pyps are consider not current. meaning I've to listen for the post save
     # signal of 'ApplicationStage' and check if its 'name == 'placement' then I can make all
-    # pyps old 'is_current == False.
+    # pyps old 'is_current == False'.
     is_current = models.BooleanField(default=True)
     # Automate it to the current ApplicationDate/the Applicant being created ApplicationDate
     application_date = models.ForeignKey(
         ApplicationDate, on_delete=models.PROTECT, related_name='pyps')
 
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            instance = ApplicationDate.objects.get(is_current=True)
+            self.application_date = instance
+        
+        return super().save(*args, **kwargs)
 
-class PypPlacement(models.Model):
-    pyp = models.ForeignKey(Pyp, on_delete=models.PROTECT)
-    name = models.CharField(max_length=100)
+
+class Institution(models.Model):
+    name = models.CharField(max_length=100, unique=True)
     address = models.CharField(max_length=100)
 
-    class Meta:
+    class Meta: 
         abstract = True
 
 
-class PypInstitution(PypPlacement):
-    pass
+class PypInstitution(Institution):
+    pyp = models.ForeignKey(Pyp, on_delete=models.PROTECT, related_name='institutions')
 
 
 class RejectedApplication(models.Model):
@@ -289,8 +291,6 @@ class RejectedApplication(models.Model):
     # it's possible that there's no unsuccessful Applicant so handle such error
     applicants = models.ManyToManyField(
         Applicant, related_name='rejected_applicants')
-    # automate this from 'ApplicationStage'
-    rejection_reason = models.CharField(max_length=255)
     # RejectedApplicant => when ApplicationStatus.name == 'Cred. Varif.
     # Applicant => Each time an applicant is copied to either Pyp or
     #               RejectedApplication, that means at the end of
@@ -308,7 +308,6 @@ class RejectedApplication(models.Model):
 
 
 class Document(QualificationChoice):
-    applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE)
     # validate the length [4] of this field
     graduation_year = models.PositiveIntegerField(validators=[validate_year])
     major = models.CharField(max_length=100)
@@ -329,6 +328,9 @@ class Document(QualificationChoice):
                                         FileExtensionValidator(allowed_extensions=['pdf'])])
     resume = models.FileField(upload_to=resume_upload_path, validators=[
                               FileExtensionValidator(allowed_extensions=['pdf'])])
+    
+    class Meta:
+        abstract = True
 
 
 class ApplicantDocument(Document):
@@ -414,21 +416,28 @@ class EmployeeAddress(Address):
         Employee, primary_key=True, on_delete=models.CASCADE)
 
 
-class PypDepartment(PypPlacement):
-    pyp_institution = models.ForeignKey(
+class Department(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    address = models.CharField(max_length=100)
+
+    class Meta:
+        abstract = True
+
+class PypDepartment(Department):
+    institution = models.ForeignKey(
         PypInstitution, on_delete=models.PROTECT)
     supervisor = models.OneToOneField(
         Supervisor, primary_key=True, on_delete=models.CASCADE)
 
 
 class Equipment(models.Model):
-    name = models.CharField(max_length=100)
-    model = models.CharField(max_length=100)
-    brand = models.CharField(max_length=100)
-    serial_number = models.CharField(max_length=100)
-    storage = models.CharField(max_length=100)
-    processor_type = models.CharField(max_length=100)
-    ram = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
+    model = models.CharField(max_length=100, unique=True)
+    brand = models.CharField(max_length=100, unique=True)
+    serial_number = models.CharField(max_length=100, unique=True)
+    storage = models.CharField(max_length=100, unique=True)
+    processor_type = models.CharField(max_length=100, unique=True)
+    ram_capicity = models.CharField(max_length=100, unique=True)
 
     class Meta:
         abstract = True
@@ -439,4 +448,13 @@ class PypEquipment(Equipment):
 
 
 class EmployeeEquipment(Equipment):
-    pyp = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+
+
+class EmployeeInstitution(Institution):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+
+
+class EmployeeDepartment(Department):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    supervisor = models.ForeignKey(Employee, on_delete=models.CASCADE)
