@@ -144,16 +144,16 @@ class ApplicationStage(models.Model):
         ('placement', 'Placement')
     )
     REJECTION_REASON_CHOICES = (
-        ('police clearance', 'Police Clearance'),
+        ('police clearance', 'Police clearance'),
         ('national id', 'National ID'),
         ('diploma', 'Diploma'),
         ('transcript', 'Transcript'),
-        ('writen exams', 'Written Exams'),
+        ('writen exams', 'Written exams'),
         ('interview', 'Interview'),
-        ('job readiness', 'Job Readiness'),
+        ('job readiness', 'Job readiness'),
         ('absent', 'Absent'),
         ('document', 'Document'),
-        ('disorderly conduct', 'Disorderly Conduct'),
+        ('disorderly conduct', 'Disorderly conduct'),
         ('other', 'Other')
     )
     name = models.CharField(max_length=25, choices=NAME_CHOICES)
@@ -222,7 +222,7 @@ class Cohort(models.Model):
     sponsors = models.ManyToManyField(CohortSponsor, related_name='cohorts')
     application_date = models.ForeignKey(
         ApplicationDate, on_delete=models.PROTECT)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     # automate this 'is_current' by listening to the post_save of
     # ApplicationStage.name == 'placement' of the current
     # ApplicationDate and them make the previous PYP old
@@ -272,7 +272,7 @@ class Pyp(Person):  # Only create instance of this model if status is 'successfu
 
 
 class Institution(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
     address = models.CharField(max_length=100)
 
     class Meta: 
@@ -334,60 +334,60 @@ class Document(QualificationChoice):
 
 
 class ApplicantDocument(Document):
-    applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE)
+    applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE, related_name='documents')
     police_clearance = models.FileField(upload_to=police_clearance_upload_path, validators=[
                                         FileExtensionValidator(allowed_extensions=['pdf'])])
 
 
 class PypDocument(Document):
-    pyp = models.ForeignKey(Pyp, on_delete=models.CASCADE)
+    pyp = models.ForeignKey(Pyp, on_delete=models.CASCADE, related_name='documents')
     police_clearance = models.FileField(upload_to=police_clearance_upload_path, validators=[
                                         FileExtensionValidator(allowed_extensions=['pdf'])])
 
 
 class EmployeeDocument(Document):
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='documents')
 
 
 class Contact(models.Model):
-    phone = models.CharField(max_length=20)
+    phone = models.CharField(max_length=20, unique=True)
 
     class Meta:
         abstract = True
 
 
 class ApplicantContact(Contact):
-    applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE)
+    applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE, related_name='contacts')
 
 
 class PypContact(Contact):
-    pyp = models.ForeignKey(Pyp, on_delete=models.CASCADE)
+    pyp = models.ForeignKey(Pyp, on_delete=models.CASCADE, related_name='contacts')
 
 
 class EmployeeContact(Contact):
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='contacts')
 
 
 class Supervisor(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, primary_key=True, on_delete=models.CASCADE)
-    pyp = models.ForeignKey(Pyp, on_delete=models.CASCADE)
+    pyp = models.ForeignKey(Pyp, on_delete=models.CASCADE, related_name='supervisors')
     position = models.CharField(max_length=100)
 
 
 class Mentor(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, primary_key=True, on_delete=models.CASCADE)
-    pyp = models.ForeignKey(Pyp, on_delete=models.CASCADE)
+    pyp = models.ForeignKey(Pyp, on_delete=models.CASCADE, related_name='mentors')
     position = models.CharField(max_length=100)
 
 
 class SupervisorContact(Contact):
-    supervisor = models.ForeignKey(Supervisor, on_delete=models.CASCADE)
+    supervisor = models.ForeignKey(Supervisor, on_delete=models.CASCADE, related_name='contacts')
 
 
 class MentorContact(Contact):
-    mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE)
+    mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE, related_name='contacts')
 
 
 class Address(CountyChoice):
@@ -403,21 +403,21 @@ class Address(CountyChoice):
 
 class ApplicantAddress(Address):
     applicant = models.OneToOneField(
-        Applicant, primary_key=True, on_delete=models.CASCADE)
+        Applicant, primary_key=True, on_delete=models.CASCADE, related_name='address')
 
 
 class PypAddress(Address):
     pyp = models.OneToOneField(
-        Pyp, primary_key=True, on_delete=models.CASCADE)
+        Pyp, primary_key=True, on_delete=models.CASCADE, related_name='address')
 
 
 class EmployeeAddress(Address):
     employee = models.OneToOneField(
-        Employee, primary_key=True, on_delete=models.CASCADE)
+        Employee, primary_key=True, on_delete=models.CASCADE, related_name='address')
 
 
 class Department(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
     address = models.CharField(max_length=100)
 
     class Meta:
@@ -425,36 +425,35 @@ class Department(models.Model):
 
 class PypDepartment(Department):
     institution = models.ForeignKey(
-        PypInstitution, on_delete=models.PROTECT)
+        PypInstitution, on_delete=models.PROTECT, related_name='departments')
     supervisor = models.OneToOneField(
-        Supervisor, primary_key=True, on_delete=models.CASCADE)
+        Supervisor, primary_key=True, on_delete=models.CASCADE, related_name='department')
 
 
 class Equipment(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    model = models.CharField(max_length=100, unique=True)
-    brand = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
+    model = models.CharField(max_length=100)
+    brand = models.CharField(max_length=100)
     serial_number = models.CharField(max_length=100, unique=True)
-    storage = models.CharField(max_length=100, unique=True)
-    processor_type = models.CharField(max_length=100, unique=True)
-    ram_capicity = models.CharField(max_length=100, unique=True)
+    storage = models.CharField(max_length=100)
+    processor_type = models.CharField(max_length=100)
+    ram_capicity = models.CharField(max_length=100)
 
     class Meta:
         abstract = True
 
 
 class PypEquipment(Equipment):
-    pyp = models.ForeignKey(Pyp, on_delete=models.CASCADE)
+    pyp = models.ForeignKey(Pyp, on_delete=models.CASCADE, related_name='devices')
 
 
 class EmployeeEquipment(Equipment):
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='devices')
 
 
 class EmployeeInstitution(Institution):
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='institutions')
 
 
 class EmployeeDepartment(Department):
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    supervisor = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='departments')
