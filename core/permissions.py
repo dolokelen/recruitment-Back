@@ -35,9 +35,4 @@ class DeleteModelPermission(permissions.DjangoModelPermissions):
             'GET': ['%(app_label)s.view_%(model_name)s'],
             'DELETE': ['%(app_label)s.delete_%(model_name)s']
         }
-
-
-class FullDjangoModelPermissions(permissions.DjangoModelPermissions):
-    def __init__(self) -> None:
-        self.perms_map['GET']: ['%(app_label)s.view_%(model_name)s']
-        
+       

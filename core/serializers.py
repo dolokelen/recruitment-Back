@@ -3,6 +3,8 @@ from django.contrib.auth.models import Group, Permission
 from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer
 from rest_framework import serializers
 
+from . models import User
+
 
 class UserCreateSerializer(BaseUserCreateSerializer):
     confirm_password = serializers.CharField(
@@ -11,18 +13,6 @@ class UserCreateSerializer(BaseUserCreateSerializer):
     class Meta(BaseUserCreateSerializer.Meta):
         fields = ['id', 'email', 'first_name',
                   'last_name', 'password', 'confirm_password']
-
-    # def validate(self, attrs):
-    #     password_min_length = 8
-    #     password_max_length = 20
-
-    #     if attrs['password'] != attrs['confirm_password']:
-    #         raise serializers.ValidationError("Passwords do not match.")
-    #     if len(attrs['password']) < password_min_length:
-    #         raise serializers.ValidationError(f"Password must be at least {password_min_length} characters long.")
-    #     if len(attrs['password']) > password_max_length:
-    #         raise serializers.ValidationError(f"Password cannot be more than {password_max_length} characters long.")
-    #     return attrs
 
     def validate(self, attrs):
         if attrs['password'] != attrs['confirm_password']:
@@ -57,3 +47,33 @@ class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ['id', 'name', 'permissions']
+
+
+class SimpleGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ['id', 'name']
+
+
+class UserGroupsSerializer(serializers.ModelSerializer):
+    groups = SimpleGroupSerializer(many=True)
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'first_name', 'last_name', 'groups']
+
+
+class AddGroupsToUserSerializer(serializers.ModelSerializer):
+    group_ids = serializers.ListField(child=serializers.IntegerField())
+    class Meta: 
+        model = User
+        fields = ['id', 'group_ids']
+
+
+class GroupRemoveUserSerializer(serializers.Serializer):
+    user_ids = serializers.ListField(child=serializers.IntegerField())
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'is_active']

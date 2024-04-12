@@ -56,3 +56,33 @@ def user_payload(email='d@gmail.com', first_name='a', last_name='b',
         'password': password,
         'confirm_password': confirm_password
     }
+
+
+@pytest.fixture
+def group_instance(post, get, get_all, api_client):
+    from django.contrib.auth.models import Group
+    from core.models import User
+
+    GROUPS_ENDPOINT = '/core/groups/'
+    PERMISSIONS_ENDPOINT = '/core/permissions/'
+
+    user_resp = post(USERS_ENDPOINT, user_payload())
+    api_client.credentials(HTTP_AUTHORIZATION=JWT + USER_TOKEN)
+    group_resp = post(GROUPS_ENDPOINT, {'name': 'a'})
+    group_get_resp = get(GROUPS_ENDPOINT, group_resp.data['id'])
+
+    # Add user to group
+    user_instance = User.objects.get(id=user_resp.data['id'])
+    queryset = Group.objects.filter(
+        id__in=[group_resp.data['id']]).values_list('id', flat=True)
+    user_instance.groups.add(*queryset)
+
+    # Assign permissions to group
+    group_instance = Group.objects.get(id=group_get_resp.data['id'])
+    permissions_res = get_all(PERMISSIONS_ENDPOINT)
+    permissions = permissions_res.json()  # b/c the response is a byte
+
+    for permission in permissions:
+        group_instance.permissions.add(permission['id'])
+
+    return group_instance
