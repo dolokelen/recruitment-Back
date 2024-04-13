@@ -98,5 +98,5 @@ class UserViewSet(ModelViewSet):
 #     def get_queryset(self):
 #         user_id = self.kwargs['pk']
 #         groups = Group.objects.filter(user=user_id).prefetch_related('permissions').all()
-#         return groups
+#         return groups 
     
