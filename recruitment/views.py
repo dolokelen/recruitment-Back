@@ -1,5 +1,3 @@
-from rest_framework import status
-from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from core import permissions
@@ -17,6 +15,7 @@ class Permission(ModelViewSet):
             return [permissions.UpdateModelPermission()]
         if self.request.method == 'DELETE':
             return [permissions.DeleteModelPermission()]
+        return super().get_permissions()
 
 
 class ApplicationDateViewSet(Permission):

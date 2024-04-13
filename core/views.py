@@ -52,7 +52,7 @@ class UserViewSet(ModelViewSet):
     will be able to access certain resources at the frontend.
     """
     queryset = User.objects.prefetch_related('groups').all()
-
+    
     def get_permissions(self):
         if self.request.method == 'GET':
             return [permissions.ReadModelPermission()]
@@ -62,6 +62,7 @@ class UserViewSet(ModelViewSet):
             return [permissions.UpdateModelPermission()]
         if self.request.method == 'DELETE':
             return [permissions.DeleteModelPermission()]
+        return super().get_permissions()
     
     def get_serializer_class(self):
         if self.request.method == 'GET':
