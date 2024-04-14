@@ -6,5 +6,4 @@ from . import models
 class ApplicationDateSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ApplicationDate
-        fields = ['id', 'open_year', 'open_month', 'open_date',
-                  'close_year', 'close_month', 'close_date', 'is_current']
+        fields = ['id', 'open_date', 'close_date', 'is_current']

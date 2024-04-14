@@ -65,12 +65,8 @@ class Person(CountyChoice):
 
 
 class ApplicationDate(models.Model):
-    open_year = models.PositiveIntegerField(validators=[validate_year])
-    open_month = models.PositiveIntegerField()
-    open_date = models.PositiveIntegerField()
-    close_year = models.PositiveIntegerField(validators=[validate_year])
-    close_month = models.PositiveIntegerField()
-    close_date = models.PositiveIntegerField()
+    open_date = models.DateField()
+    close_date = models.DateField()
     is_current = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
