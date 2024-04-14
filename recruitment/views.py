@@ -19,5 +19,5 @@ class Permission(ModelViewSet):
 
 
 class ApplicationDateViewSet(Permission):
-    queryset = models.ApplicationDate.objects.all()
+    queryset = models.ApplicationDate.objects.all() 
     serializer_class = serializers.ApplicationDateSerializer
