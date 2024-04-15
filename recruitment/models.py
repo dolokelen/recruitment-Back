@@ -3,18 +3,18 @@ from django.db import models, transaction
 from django.core.validators import FileExtensionValidator
 
 from .validators import (
-    validate_file_size, 
-    validate_year, 
+    validate_file_size,
+    validate_year,
     validate_district
-    )
+)
 from .utilities import (
-    image_upload_path, degree_upload_path, 
+    image_upload_path, degree_upload_path,
     community_letter_upload_path,
     reference_letter_upload_path, application_upload_path,
     resume_upload_path, police_clearance_upload_path,
     tor_upload_path, applicant_id_number_generator,
     pyp_id_number_generator
-    )
+)
 
 
 class CountyChoice(models.Model):
@@ -73,11 +73,14 @@ class ApplicationDate(models.Model):
         with transaction.atomic():
             if self._state.adding:
                 self.is_current = True
+                ApplicationDate.objects.exclude(
+                    pk=self.pk).update(is_current=False)
+            elif not self.is_current:
+                return super().save(*args, **kwargs)
+            else:
+                pass
 
-            previous_date = ApplicationDate.objects.filter(is_current=True)
-            previous_date.update(is_current=False)
-
-            return super().save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
 
 class Applicant(Person):
@@ -163,7 +166,8 @@ class ApplicationStage(models.Model):
     is_rejected = models.BooleanField(default=False)
     is_current = models.BooleanField(default=False)
     # Create signal to listen for any of the CURD operations and create an AuditTrial instance.
-    employee = models.ForeignKey(Employee, on_delete=models.PROTECT, related_name='stages')
+    employee = models.ForeignKey(
+        Employee, on_delete=models.PROTECT, related_name='stages')
     created_at = models.DateTimeField(auto_now_add=True)
     # This will allow me to delete all instances of this model
     # for a particular recruitment cycle
@@ -179,7 +183,7 @@ class ApplicationStage(models.Model):
 
                 instance = ApplicationDate.objects.get(is_current=True)
                 self.application_date = instance
-            
+
             if self.rejection_reason != 'Other':
                 self.other_rejection_reason = None
 
@@ -263,7 +267,7 @@ class Pyp(Person):  # Only create instance of this model if status is 'successfu
         if self._state.adding:
             instance = ApplicationDate.objects.get(is_current=True)
             self.application_date = instance
-        
+
         return super().save(*args, **kwargs)
 
 
@@ -271,12 +275,13 @@ class Institution(models.Model):
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=100)
 
-    class Meta: 
+    class Meta:
         abstract = True
 
 
 class PypInstitution(Institution):
-    pyp = models.ForeignKey(Pyp, on_delete=models.PROTECT, related_name='institutions')
+    pyp = models.ForeignKey(Pyp, on_delete=models.PROTECT,
+                            related_name='institutions')
 
 
 class RejectedApplication(models.Model):
@@ -324,25 +329,28 @@ class Document(QualificationChoice):
                                         FileExtensionValidator(allowed_extensions=['pdf'])])
     resume = models.FileField(upload_to=resume_upload_path, validators=[
                               FileExtensionValidator(allowed_extensions=['pdf'])])
-    
+
     class Meta:
         abstract = True
 
 
 class ApplicantDocument(Document):
-    applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE, related_name='documents')
+    applicant = models.ForeignKey(
+        Applicant, on_delete=models.CASCADE, related_name='documents')
     police_clearance = models.FileField(upload_to=police_clearance_upload_path, validators=[
                                         FileExtensionValidator(allowed_extensions=['pdf'])])
 
 
 class PypDocument(Document):
-    pyp = models.ForeignKey(Pyp, on_delete=models.CASCADE, related_name='documents')
+    pyp = models.ForeignKey(
+        Pyp, on_delete=models.CASCADE, related_name='documents')
     police_clearance = models.FileField(upload_to=police_clearance_upload_path, validators=[
                                         FileExtensionValidator(allowed_extensions=['pdf'])])
 
 
 class EmployeeDocument(Document):
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='documents')
+    employee = models.ForeignKey(
+        Employee, on_delete=models.CASCADE, related_name='documents')
 
 
 class Contact(models.Model):
@@ -353,37 +361,44 @@ class Contact(models.Model):
 
 
 class ApplicantContact(Contact):
-    applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE, related_name='contacts')
+    applicant = models.ForeignKey(
+        Applicant, on_delete=models.CASCADE, related_name='contacts')
 
 
 class PypContact(Contact):
-    pyp = models.ForeignKey(Pyp, on_delete=models.CASCADE, related_name='contacts')
+    pyp = models.ForeignKey(
+        Pyp, on_delete=models.CASCADE, related_name='contacts')
 
 
 class EmployeeContact(Contact):
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='contacts')
+    employee = models.ForeignKey(
+        Employee, on_delete=models.CASCADE, related_name='contacts')
 
 
 class Supervisor(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, primary_key=True, on_delete=models.CASCADE)
-    pyp = models.ForeignKey(Pyp, on_delete=models.CASCADE, related_name='supervisors')
+    pyp = models.ForeignKey(Pyp, on_delete=models.CASCADE,
+                            related_name='supervisors')
     position = models.CharField(max_length=100)
 
 
 class Mentor(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, primary_key=True, on_delete=models.CASCADE)
-    pyp = models.ForeignKey(Pyp, on_delete=models.CASCADE, related_name='mentors')
+    pyp = models.ForeignKey(
+        Pyp, on_delete=models.CASCADE, related_name='mentors')
     position = models.CharField(max_length=100)
 
 
 class SupervisorContact(Contact):
-    supervisor = models.ForeignKey(Supervisor, on_delete=models.CASCADE, related_name='contacts')
+    supervisor = models.ForeignKey(
+        Supervisor, on_delete=models.CASCADE, related_name='contacts')
 
 
 class MentorContact(Contact):
-    mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE, related_name='contacts')
+    mentor = models.ForeignKey(
+        Mentor, on_delete=models.CASCADE, related_name='contacts')
 
 
 class Address(CountyChoice):
@@ -419,6 +434,7 @@ class Department(models.Model):
     class Meta:
         abstract = True
 
+
 class PypDepartment(Department):
     institution = models.ForeignKey(
         PypInstitution, on_delete=models.PROTECT, related_name='departments')
@@ -440,16 +456,20 @@ class Equipment(models.Model):
 
 
 class PypEquipment(Equipment):
-    pyp = models.ForeignKey(Pyp, on_delete=models.CASCADE, related_name='devices')
+    pyp = models.ForeignKey(
+        Pyp, on_delete=models.CASCADE, related_name='devices')
 
 
 class EmployeeEquipment(Equipment):
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='devices')
+    employee = models.ForeignKey(
+        Employee, on_delete=models.CASCADE, related_name='devices')
 
 
 class EmployeeInstitution(Institution):
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='institutions')
+    employee = models.ForeignKey(
+        Employee, on_delete=models.CASCADE, related_name='institutions')
 
 
 class EmployeeDepartment(Department):
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='departments')
+    employee = models.ForeignKey(
+        Employee, on_delete=models.CASCADE, related_name='departments')
