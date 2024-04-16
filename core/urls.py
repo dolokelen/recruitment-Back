@@ -10,5 +10,6 @@ router.register('groups', views.GroupViewSet)
 router.register('permissions', views.PermissionViewSet)
 
 urlpatterns = [
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    path('user-groups/<int:pk>/', views.ListUserGroups.as_view()),
 ]
