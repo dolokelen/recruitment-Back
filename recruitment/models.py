@@ -323,7 +323,7 @@ class Document(QualificationChoice):
     # these are incomplete and validate its .pdf
     degree = models.FileField(upload_to=degree_upload_path, validators=[
                               FileExtensionValidator(allowed_extensions=['pdf'])])
-    ccgpa = models.DecimalField(max_digits=3, decimal_places=2)
+    cgpa = models.DecimalField(max_digits=3, decimal_places=2)
     # incomplate and must be .pdf
     application_letter = models.FileField(upload_to=application_upload_path, validators=[
                                           FileExtensionValidator(allowed_extensions=['pdf'])])

@@ -16,7 +16,7 @@ class ApplicantDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ApplicantDocument
         fields = ['id', 'applicant', 'qualification', 'graduation_year', 'major', 'manor', 'institution', 'country', 'county',
-                  'ccgpa', 'degree', 'application_letter', 'community_letter', 'reference_letter', 'resume', 'police_clearance']
+                  'cgpa', 'degree', 'application_letter', 'community_letter', 'reference_letter', 'resume', 'police_clearance']
 
 
 class ApplicantAddressSerializer(serializers.ModelSerializer):
@@ -33,6 +33,9 @@ class ApplicantContactSerializer(serializers.ModelSerializer):
 
 
 class ApplicantSerializer(serializers.ModelSerializer):
+    """
+    County represents the birth county of the applicant
+    """
     app_document = ApplicantDocumentSerializer()
     app_address = ApplicantAddressSerializer()
     app_contact = ApplicantContactSerializer(many=True)
