@@ -15,7 +15,7 @@ class ApplicantDocumentSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = models.ApplicantDocument
-        fields = ['id', 'applicant', 'qualification', 'graduation_year', 'major', 'manor', 'institution', 'country', 'county',
+        fields = ['applicant', 'qualification', 'graduation_year', 'major', 'manor', 'institution', 'country', 'county',
                   'ccgpa', 'degree', 'application_letter', 'community_letter', 'reference_letter', 'resume', 'police_clearance']
 
 

@@ -34,7 +34,7 @@ class ApplicantViewSet(ModelViewSet):
     serializer_class = serializers.ApplicantSerializer
 
     def get_serializer_context(self):
-        return {'user_id': self.kwargs['pk']}
+        return {'user_id': self.request.user.id}
 
     # def partial_update(self, request, *args, **kwargs):
     #     mutable_data = self.request.data.copy()
