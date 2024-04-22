@@ -12,17 +12,17 @@ class ApplicationDateSerializer(serializers.ModelSerializer):
 
 
 class ApplicantDocumentSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = models.ApplicantDocument
-        fields = ['applicant', 'qualification', 'graduation_year', 'major', 'manor', 'institution', 'country', 'county',
+        fields = ['id', 'applicant', 'qualification', 'graduation_year', 'major', 'manor', 'institution', 'country', 'county',
                   'ccgpa', 'degree', 'application_letter', 'community_letter', 'reference_letter', 'resume', 'police_clearance']
 
 
 class ApplicantAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ApplicantAddress
-        fields = ['applicant', 'country', 'county_of_birth',
+        fields = ['applicant', 'country', 'county',
                   'district', 'community', 'house_address']
 
 
@@ -37,15 +37,21 @@ class ApplicantSerializer(serializers.ModelSerializer):
     app_address = ApplicantAddressSerializer()
     app_contact = ApplicantContactSerializer(many=True)
 
+    class Meta:
+        model = models.Applicant
+        fields = ['app_document', 'app_address', 'app_contact', 'birth_date', 'gender',
+                  'religion', 'county', 'image', 'id_number', 'status', 'rejection_reason']
+
     @transaction.atomic()
     def create(self, validated_data):
         document_data = validated_data.pop('app_document')
         address_data = validated_data.pop('app_address')
         contact_data = validated_data.pop('app_contact')
-        
+
         user = User.objects.get(id=self.context['user_id'])
-        applicant = models.Applicant.objects.create(user=user, **validated_data)
-        
+        applicant = models.Applicant.objects.create(
+            user=user, **validated_data)
+
         document_serializer = ApplicantDocumentSerializer(data=document_data)
         if document_serializer.is_valid(raise_exception=True):
             document_serializer.save(applicant=applicant)
@@ -61,7 +67,4 @@ class ApplicantSerializer(serializers.ModelSerializer):
 
         return applicant
 
-    class Meta:
-        model = models.Applicant
-        fields = ['app_document', 'app_address', 'app_contact', 'birth_date', 'gender',
-                  'religion', 'image', 'id_number', 'status', 'rejection_reason']
+    

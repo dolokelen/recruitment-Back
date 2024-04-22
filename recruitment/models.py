@@ -18,6 +18,10 @@ from .utilities import (
 
 
 class CountyChoice(models.Model):
+    """
+    The field is not called 'birth_county' because other models
+    are inheriting this Abstract model 
+    """
     COUNTY_CHOICES = (
         ('bomi', 'Bomi'),
         ('bong', 'Bong'),
@@ -35,7 +39,7 @@ class CountyChoice(models.Model):
         ('river gee', 'River Gee'),
         ('sinoe', 'Sinoe')
     )
-    county_of_birth = models.CharField(max_length=16, choices=COUNTY_CHOICES)
+    county = models.CharField(max_length=16, choices=COUNTY_CHOICES)
 
     class Meta:
         abstract = True
