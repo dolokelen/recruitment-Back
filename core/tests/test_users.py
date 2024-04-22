@@ -17,7 +17,7 @@ class TestUser:
 
     def test_if_anonymous_user_can_register_return_201(self, post):
         response = post(USERS_ENDPOINT, user_payload(email='m@gmail.com'))
-        
+
         assert response.data['id'] > 0
         assert response.status_code == status.HTTP_201_CREATED
 
@@ -56,15 +56,15 @@ class TestUser:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_if_first_name_is_optional_return_200(self, post):
+    def test_if_first_name_is_not_optional_return_400(self, post):
         response = post(USERS_ENDPOINT, user_payload(first_name=''))
 
-        assert response.status_code == status.HTTP_201_CREATED
-    
-    def test_if_last_name_is_optional_return_200(self, post):
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_if_last_name_is_not_optional_return_400(self, post):
         response = post(USERS_ENDPOINT, user_payload(last_name=''))
 
-        assert response.status_code == status.HTTP_201_CREATED
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_if_email_exist_return_400(self, post):
         existing_user = baker.prepare(User)

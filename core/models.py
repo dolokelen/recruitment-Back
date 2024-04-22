@@ -38,11 +38,15 @@ class CustomUserManager(BaseUserManager):
 
 
 class User(AbstractUser):
+    """
+    when user confirm their email the 'is_active' will be enabled
+    by DJOSER but currently, 'is_active=True' because I haven't 
+    enable that DJOSER setting yet.
+    """
     username = None
     email = models.EmailField(unique=True, blank=False)
-    first_name = models.CharField(max_length=150, blank=True)
-    last_name = models.CharField(max_length=150, blank=True)
-    # is_active = models.BooleanField(default=False) #Will be activated later when the user confirms their email
+    first_name = models.CharField(max_length=150, blank=False)
+    last_name = models.CharField(max_length=150, blank=False)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
