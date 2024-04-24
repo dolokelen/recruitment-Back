@@ -1,4 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.response import Response
+from rest_framework import status
 
 from core import permissions
 from . import models
@@ -25,18 +27,36 @@ class ApplicationDateViewSet(Permission):
 
 class ApplicantViewSet(ModelViewSet):
     """
-    Only user who registered as applicant can access this view
-    if an employee wants to proxy for an applicant the employee 
-    must use the applicant username and password to login because
-    the user_id will be associated with an Applicant automatically.
+    Only applicant should post, if someone wants to 
+    proxy they MUST use the applicant credentials to login.
     """
     queryset = models.Applicant.objects.all()
     serializer_class = serializers.ApplicantSerializer
 
     def get_serializer_context(self):
+        """
+        The user who is posting the data user_id is use to associate
+        applicant with user.
+        """
         return {'user_id': self.request.user.id}
 
-    # def partial_update(self, request, *args, **kwargs):
-    #     mutable_data = self.request.data.copy()
-    #     user_id = self.kwargs['pk']
-    #     print(mutable_data, user_id)
+    def create(self, request, *args, **kwargs):
+        """
+        I'm using FormData to post because of the image(binary) and 
+        each field is placed in a list
+        """
+        data = request.data.copy()
+        applicant_data = {
+            'birth_date': data.pop('birth_date')[0],
+            'gender': data.pop('gender')[0],
+            'religion': data.pop('religion')[0],
+            'county': data.pop('county')[0],
+            'image': data.pop('image')[0],
+        }
+
+        serializer = self.get_serializer(data=applicant_data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+

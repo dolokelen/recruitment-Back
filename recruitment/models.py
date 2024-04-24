@@ -23,21 +23,21 @@ class CountyChoice(models.Model):
     are inheriting this Abstract model 
     """
     COUNTY_CHOICES = (
-        ('bomi', 'Bomi'),
-        ('bong', 'Bong'),
-        ('gbarpolu', 'Gbarpolu'),
-        ('grand bassa', 'Grand Bassa'),
-        ('grand cape mount', 'Grand Cape Mount'),
-        ('grand gedeh', 'Grand Gedeh'),
-        ('grand kru', 'Grand Kru'),
-        ('lofa', 'Lofa'),
-        ('margibi', 'Margibi'),
-        ('maryland', 'Maryland'),
-        ('montserrado', 'Montserrado'),
-        ('nimba', 'Nimba'),
-        ('river cess', 'River cess'),
-        ('river gee', 'River Gee'),
-        ('sinoe', 'Sinoe')
+        ('Bomi', 'Bomi'),
+        ('Bong', 'Bong'),
+        ('Gbarpolu', 'Gbarpolu'),
+        ('Grand Bassa', 'Grand Bassa'),
+        ('Grand Cape Mount', 'Grand Cape Mount'),
+        ('Grand Gedeh', 'Grand Gedeh'),
+        ('Grand Kru', 'Grand Kru'),
+        ('Lofa', 'Lofa'),
+        ('Margibi', 'Margibi'),
+        ('Maryland', 'Maryland'),
+        ('Montserrado', 'Montserrado'),
+        ('Nimba', 'Nimba'),
+        ('River cess', 'River cess'),
+        ('River Gee', 'River Gee'),
+        ('Sinoe', 'Sinoe')
     )
     county = models.CharField(max_length=16, choices=COUNTY_CHOICES)
 
@@ -47,13 +47,13 @@ class CountyChoice(models.Model):
 
 class Person(CountyChoice):
     GENDER_CHOICES = (
-        ('male', 'Male'),
-        ('female', 'Female')
+        ('Male', 'Male'),
+        ('Female', 'Female')
     )
     RELIGION_CHOICES = (
-        ('christian', 'Christian'),
-        ('muslim', 'Muslim'),
-        ('none', 'None')
+        ('Christian', 'Christian'),
+        ('Muslim', 'Muslim'),
+        ('None', 'None')
     )
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, primary_key=True, on_delete=models.CASCADE)
@@ -106,9 +106,9 @@ class Applicant(Person):
 
 class QualificationChoice(models.Model):
     QUALIFICATION_CHOICES = (
-        ('bachelor', 'Bachelor'),
-        ('master', 'Master'),
-        ('phd', 'PhD')
+        ('Bachelor', 'Bachelor'),
+        ('Master', 'Master'),
+        ('PhD', 'PhD')
     )
     qualification = models.CharField(
         max_length=8, choices=QUALIFICATION_CHOICES)
@@ -119,9 +119,9 @@ class QualificationChoice(models.Model):
 
 class Employee(Person, QualificationChoice):
     EMPLOYMENT_CHOICES = (
-        ('internship', 'Internship'),
-        ('part timer', 'Part Timer'),
-        ('full timer', 'Full Timer')
+        ('Internship', 'Internship'),
+        ('Part Timer', 'Part Timer'),
+        ('Full Timer', 'Full Timer')
     )
     employment = models.CharField(max_length=255, choices=EMPLOYMENT_CHOICES)
     position = models.CharField(max_length=255)
@@ -133,31 +133,31 @@ class Employee(Person, QualificationChoice):
 
 class ApplicationStage(models.Model):
     STATUS_CHOICES = (
-        ('under review', 'Under review'),
-        ('pending', 'Pending'),
-        ('unsuccessful', 'Unsuccessful'),
-        ('successful', 'Successful'),
+        ('Under review', 'Under review'),
+        ('Pending', 'Pending'),
+        ('Unsuccessful', 'Unsuccessful'),
+        ('Successful', 'Successful'),
     )
     NAME_CHOICES = (
-        ('publicity', 'Publicity'),
-        ('credential varification', 'Credential varification'),
-        ('writen exams', 'Writen exams'),
-        ('interview', 'Interview'),
-        ('job readiness orientation', 'Job readiness orientation'),
-        ('placement', 'Placement')
+        ('Publicity', 'Publicity'),
+        ('Credential varification', 'Credential varification'),
+        ('Writen exams', 'Writen exams'),
+        ('Interview', 'Interview'),
+        ('Job readiness orientation', 'Job readiness orientation'),
+        ('Placement', 'Placement')
     )
     REJECTION_REASON_CHOICES = (
-        ('police clearance', 'Police clearance'),
-        ('national id', 'National ID'),
-        ('diploma', 'Diploma'),
-        ('transcript', 'Transcript'),
-        ('writen exams', 'Written exams'),
-        ('interview', 'Interview'),
-        ('job readiness', 'Job readiness'),
-        ('absent', 'Absent'),
-        ('document', 'Document'),
-        ('disorderly conduct', 'Disorderly conduct'),
-        ('other', 'Other')
+        ('Police clearance', 'Police clearance'),
+        ('National id', 'National ID'),
+        ('Diploma', 'Diploma'),
+        ('Transcript', 'Transcript'),
+        ('Writen exams', 'Written exams'),
+        ('Interview', 'Interview'),
+        ('Job readiness', 'Job readiness'),
+        ('Absent', 'Absent'),
+        ('Document', 'Document'),
+        ('Disorderly conduct', 'Disorderly conduct'),
+        ('Other', 'Other')
     )
     name = models.CharField(max_length=25, choices=NAME_CHOICES)
     status = models.CharField(max_length=13, choices=STATUS_CHOICES)
