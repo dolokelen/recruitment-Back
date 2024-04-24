@@ -1,7 +1,7 @@
-from django.db import transaction
 from rest_framework import serializers
 
-from core.serializers import User
+from core.models import User
+from core.serializers import ReadUserSerializer
 from . import models
 
 
@@ -45,6 +45,18 @@ class ApplicantSerializer(serializers.ModelSerializer):
         user = User.objects.get(id=self.context['user_id'])
         applicant = models.Applicant.objects.create(
             user=user, **validated_data)
-        
+
         return applicant
-       
+
+
+class ReadApplicantSerializer(serializers.ModelSerializer):
+    user = ReadUserSerializer()
+    birth_date = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.Applicant
+        fields = ['user', 'birth_date', 'gender', 'religion', 'county', 'image',
+                  'id_number', 'status', 'rejection_reason']
+    
+    def get_birth_date(self, applicant):
+        return applicant.birth_date.strftime('%B %d, %Y')

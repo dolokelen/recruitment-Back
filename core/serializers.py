@@ -57,6 +57,7 @@ class SimpleGroupSerializer(serializers.ModelSerializer):
 
 class UserGroupsSerializer(serializers.ModelSerializer):
     groups = SimpleGroupSerializer(many=True)
+
     class Meta:
         model = User
         fields = ['id', 'email', 'first_name', 'last_name', 'groups']
@@ -64,7 +65,8 @@ class UserGroupsSerializer(serializers.ModelSerializer):
 
 class AddGroupsToUserSerializer(serializers.ModelSerializer):
     group_ids = serializers.ListField(child=serializers.IntegerField())
-    class Meta: 
+
+    class Meta:
         model = User
         fields = ['id', 'group_ids']
 
@@ -77,3 +79,14 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'email']
+
+
+class ReadUserSerializer(serializers.ModelSerializer):
+    """Used in recruitment serializer"""
+    full_name = serializers.SerializerMethodField()
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name', 'full_name', 'email']
+
+    def get_full_name(self, user):
+        return f'{user.first_name} {user.last_name}'
