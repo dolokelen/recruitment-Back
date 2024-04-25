@@ -27,7 +27,7 @@ class ApplicationDateViewSet(Permission):
     serializer_class = serializers.ApplicationDateSerializer
 
 
-class ApplicantViewSet(ModelViewSet):
+class ApplicantViewSet(ModelViewSet): #You must apply permissions
     """
     Only applicant should post, if someone wants to 
     proxy they MUST use the applicant credentials to login.

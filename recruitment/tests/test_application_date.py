@@ -43,10 +43,10 @@ class TestApplicationDate:
 
         assert response.status_code == status.HTTP_200_OK
 
-    def test_if_permission_user_can_update_applicationdate_return_200(self, post, update, group_instance):
+    def test_if_permission_user_can_patch_applicationdate_return_200(self, post, patch, group_instance):
         response = post(APPLICATION_DATE_ENDPOINT,
                         self.applicationdate_payload())
-        response = update(APPLICATION_DATE_ENDPOINT,
+        response = patch(APPLICATION_DATE_ENDPOINT,
                           response.data['id'], self.applicationdate_payload(open_date='2025-12-15'))
 
         assert response.status_code == status.HTTP_200_OK
@@ -59,13 +59,13 @@ class TestApplicationDate:
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
-    def test_if_partial_permission_user_cannot_update_applicationdate_return_403(self, post, update, group_instance):
+    def test_if_partial_permission_user_cannot_patch_applicationdate_return_403(self, post, patch, group_instance):
         post_resp = post(APPLICATION_DATE_ENDPOINT,
                          self.applicationdate_payload())
         excluded_permission = Permission.objects.filter(
             name__in=['Can change application date'])
         group_instance.permissions.remove(*excluded_permission)
-        response = update(APPLICATION_DATE_ENDPOINT,
+        response = patch(APPLICATION_DATE_ENDPOINT,
                           post_resp.data['id'], self.applicationdate_payload(open_date='2025-12-15'))
 
         assert response.status_code == status.HTTP_403_FORBIDDEN

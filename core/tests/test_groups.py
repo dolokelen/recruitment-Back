@@ -68,12 +68,12 @@ class TestGroup:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_if_authenticated_user_can_update_group_name_return_200(self, post, api_client, get, update):
+    def test_if_authenticated_user_can_update_group_name_return_200(self, post, api_client, get, put):
         post(USERS_ENDPOINT, user_payload())
         api_client.credentials(HTTP_AUTHORIZATION=JWT + USER_TOKEN)
         response = post(GROUPS_ENDPOINT, {'name': 'a'})
         response = get(GROUPS_ENDPOINT, response.data['id'])
-        response = update(GROUPS_ENDPOINT, response.data['id'], {'name': 'b'})
+        response = put(GROUPS_ENDPOINT, response.data['id'], {'name': 'b'})
 
         assert response.status_code == status.HTTP_200_OK
 

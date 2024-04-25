@@ -1,7 +1,7 @@
 import pytest
 from rest_framework.test import APIClient
 
-USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzEzOTIxMTU1LCJpYXQiOjE3MTM3NDgzNTUsImp0aSI6ImQ1Y2UzNDI4MDI2MTQ3MzU4ZTQ2MzAyYzc0ZmRlMDk5IiwidXNlcl9pZCI6MX0.HfjBWNhyrTrQ2KalPDsixDpykUcVkDXx1JxdBo8n2nY'
+USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE0MTY4MTQxLCJpYXQiOjE3MTM5OTUzNDEsImp0aSI6ImUzMzdkMDAxMGRiZjRhMTU4NTdlYjJmNzBmYjdjZjNkIiwidXNlcl9pZCI6MX0.OLozXw-YJK-VGa6z7VLYK0pmpDud8gDUdZQ-trPd9nI'
 
 JWT = 'JWT '
 USERS_ENDPOINT = '/auth/users/'
@@ -34,10 +34,17 @@ def get(api_client):
 
 
 @pytest.fixture
-def update(api_client):
-    def do_update(endpoint, id, payload):
+def put(api_client):
+    def do_put(endpoint, id, payload):
         return api_client.put(f'{endpoint}{id}/', payload)
-    return do_update
+    return do_put
+
+
+@pytest.fixture
+def patch(api_client):
+    def do_patch(endpoint, id, payload):
+        return api_client.patch(f'{endpoint}{id}/', payload)
+    return do_patch
 
 
 @pytest.fixture
