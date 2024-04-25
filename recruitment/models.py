@@ -340,7 +340,7 @@ class Document(QualificationChoice):
 
 class ApplicantDocument(Document):
     applicant = models.OneToOneField(
-        Applicant, on_delete=models.CASCADE, related_name='document')
+        Applicant, primary_key=True, on_delete=models.CASCADE, related_name='document')
     police_clearance = models.FileField(upload_to=police_clearance_upload_path, validators=[
                                         FileExtensionValidator(allowed_extensions=['pdf'])])
 

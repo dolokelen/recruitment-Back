@@ -84,3 +84,8 @@ class ApplicantViewSet(ModelViewSet): #You must apply permissions
                     os.remove(old_image_path)
 
         return super().update(request, *args, **kwargs)
+
+
+class ApplicantDocumentViewSet(ModelViewSet):
+    queryset = models.ApplicantDocument.objects.select_related('applicant').all()
+    serializer_class = serializers.ApplicantDocumentSerializer

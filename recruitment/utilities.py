@@ -19,7 +19,7 @@ def tor_upload_path(instance, filename):
 
 
 def police_clearance_upload_path(instance, filename):
-    instance_id = str(instance.user.id)
+    instance_id = str(instance.applicant.user.id)
     _, extension = os.path.splitext(filename)
     file_path = f'recruitment/police-clearance/{instance_id}{extension}'
 
@@ -27,7 +27,7 @@ def police_clearance_upload_path(instance, filename):
 
 
 def degree_upload_path(instance, filename):
-    instance_id = str(instance.user.id)
+    instance_id = str(instance.applicant.user.id)
     _, extension = os.path.splitext(filename)
     file_path = f'recruitment/degree/{instance_id}{extension}'
 
@@ -35,7 +35,7 @@ def degree_upload_path(instance, filename):
 
 
 def application_upload_path(instance, filename):
-    instance_id = str(instance.user.id)
+    instance_id = str(instance.applicant.user.id)
     _, extension = os.path.splitext(filename)
     file_path = f'recruitment/application/{instance_id}{extension}'
 
@@ -43,7 +43,7 @@ def application_upload_path(instance, filename):
 
 
 def community_letter_upload_path(instance, filename):
-    instance_id = str(instance.user.id)
+    instance_id = str(instance.applicant.user.id)
     _, extension = os.path.splitext(filename)
     file_path = f'recruitment/community-letter/{instance_id}{extension}'
 
@@ -51,7 +51,7 @@ def community_letter_upload_path(instance, filename):
 
 
 def resume_upload_path(instance, filename):
-    instance_id = str(instance.user.id)
+    instance_id = str(instance.applicant.user.id)
     _, extension = os.path.splitext(filename)
     file_path = f'recruitment/resume/{instance_id}{extension}'
 
@@ -59,7 +59,7 @@ def resume_upload_path(instance, filename):
 
 
 def reference_letter_upload_path(instance, filename):
-    instance_id = str(instance.user.id)
+    instance_id = str(instance.applicant.user.id)
     _, extension = os.path.splitext(filename)
     file_path = f'recruitment/reference-letter/{instance_id}{extension}'
 
