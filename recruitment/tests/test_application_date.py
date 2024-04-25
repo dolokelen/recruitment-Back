@@ -2,11 +2,7 @@ import pytest
 from django.contrib.auth.models import Permission
 from rest_framework import status
 
-
-TOKEN_ENDPOINT = '/auth/jwt/create/'
 APPLICATION_DATE_ENDPOINT = '/recruitment/application-dates/'
-GROUPS_ENDPOINT = '/core/groups/'
-PERMISSIONS_ENDPOINT = '/core/permissions/'
 
 
 @pytest.mark.django_db
@@ -47,7 +43,7 @@ class TestApplicationDate:
         response = post(APPLICATION_DATE_ENDPOINT,
                         self.applicationdate_payload())
         response = patch(APPLICATION_DATE_ENDPOINT,
-                          response.data['id'], self.applicationdate_payload(open_date='2025-12-15'))
+                         response.data['id'], self.applicationdate_payload(open_date='2025-12-15'))
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data['open_date'] == '2025-12-15'
@@ -66,7 +62,7 @@ class TestApplicationDate:
             name__in=['Can change application date'])
         group_instance.permissions.remove(*excluded_permission)
         response = patch(APPLICATION_DATE_ENDPOINT,
-                          post_resp.data['id'], self.applicationdate_payload(open_date='2025-12-15'))
+                         post_resp.data['id'], self.applicationdate_payload(open_date='2025-12-15'))
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert post_resp.data['open_date'] != '2025-12-15'

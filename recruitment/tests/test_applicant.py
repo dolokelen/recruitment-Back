@@ -9,10 +9,7 @@ from conftest import JWT, USER_TOKEN, USERS_ENDPOINT, user_payload
 from recruitment.models import Applicant
 
 
-TOKEN_ENDPOINT = '/auth/jwt/create/'
 APPLICANT_ENDPOINT = '/recruitment/applicants/'
-GROUPS_ENDPOINT = '/core/groups/'
-PERMISSIONS_ENDPOINT = '/core/permissions/'
 
 
 def create_image_file():
