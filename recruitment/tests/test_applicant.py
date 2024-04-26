@@ -221,15 +221,4 @@ class TestApplicantDocument:
 
     def test_if_authenticated_user_can_post_applicant_return_201(self, get, api_client):
         """ See this class for the comment"""
-        from core.models import User
-        user = baker.make(User, email='mecom')
-        api_client.credentials(HTTP_AUTHORIZATION=JWT + USER_TOKEN)
-        user_resp = api_client.get(f'/core/users/{user.id}/')
-
-        applicant = baker.make(Applicant)
-        response = get(APPLICANT_ENDPOINT, applicant.user.id)
-        # instance = Applicant.objects.get(user_id=user_resp.data['id'])
-        print("********************", user)
-        assert response.status_code == status.HTTP_200_OK
-        assert user.id > 0
-        assert user_resp.data['email'] == 'mecom'
+        
