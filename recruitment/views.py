@@ -40,13 +40,7 @@ class ApplicantViewSet(ModelViewSet):  # You must apply permissions
             return serializers.ReadApplicantSerializer
         return serializers.ApplicantSerializer
 
-    def get_serializer_context(self):
-        """
-        The user who is posting the data user_id is use to associate
-        applicant with user.
-        """
-        return {'user_id': self.request.user.id}
-
+    
     def create(self, request, *args, **kwargs):
         """
         I'm using FormData to post because of the image(binary) and 
@@ -54,6 +48,7 @@ class ApplicantViewSet(ModelViewSet):  # You must apply permissions
         """
         data = request.data.copy()
         applicant_data = {
+            'user': data.pop('user')[0],
             'birth_date': data.pop('birth_date')[0],
             'gender': data.pop('gender')[0],
             'religion': data.pop('religion')[0],
@@ -88,24 +83,30 @@ class ApplicantViewSet(ModelViewSet):  # You must apply permissions
 
 
 class ApplicantDocumentViewSet(ModelViewSet):
+    """
+    If I get user_id from self.request.user.id and pass it to the 
+    serializer using the context obj and override the create method,
+    the Test for this view will fail because only the database Pytest
+    does not commit during the test. When Pytest runs this view and 
+    the value for self.request.user.id will not be available. 
+
+    However, this will work with models that have DIRECT OneToOne relationship 
+    to the User model. But for consistancy I won't use it at all.
+    """
     queryset = models.ApplicantDocument.objects.select_related(
         'applicant').all()
     serializer_class = serializers.ApplicantDocumentSerializer
-
-    def get_serializer_context(self):
-        """
-        The user who is posting the data user_id is use to associate
-        applicant document with user.
-        """
-        return {'user_id': self.request.user.id}
 
     def create(self, request, *args, **kwargs):
         """
         I'm using FormData to post because of the files(binary) and 
         each field is placed in a list
+
+        See this class for generic comment
         """
         data = request.data.copy()
         document_data = {
+            'applicant': data.pop('applicant')[0],
             'cgpa': data.pop('cgpa')[0],
             'qualification': data.pop('qualification')[0],
             'institution': data.pop('institution')[0],
@@ -118,10 +119,6 @@ class ApplicantDocumentViewSet(ModelViewSet):
             'application_letter': data.pop('application_letter')[0],
             'reference_letter': data.pop('reference_letter')[0],
             'community_letter': data.pop('community_letter')[0],
-            # 'application_letter': data.pop('appLetter')[0],
-            # 'reference_letter': data.pop('refLetter')[0],
-            # 'community_letter': data.pop('commLetter')[0],
-            # 'police_clearance': data.pop('policeClearance')[0],
             'police_clearance': data.pop('police_clearance')[0],
             'resume': data.pop('resume')[0]
         }
@@ -133,7 +130,16 @@ class ApplicantDocumentViewSet(ModelViewSet):
 
 
 class ApplicantAddressViewSet(ModelViewSet):
-    """ The applicant id is included in the request data """
+    """ 
+    If I get user_id from self.request.user.id and pass it to the 
+    serializer using the context obj and override the create method,
+    the Test for this view will fail because only the database Pytest
+    does not commit during the test. When Pytest runs this view and 
+    the value for self.request.user.id will not be available. 
+
+    However, this will work with models that have DIRECT OneToOne relationship 
+    to the User model. But for consistancy I won't use it at all.
+    """
     queryset = models.ApplicantAddress.objects.select_related(
         'applicant').all()
     serializer_class = serializers.ApplicantAddressSerializer

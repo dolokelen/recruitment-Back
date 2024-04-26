@@ -1,7 +1,6 @@
 from datetime import date
 from rest_framework import serializers
 
-from core.models import User
 from core.serializers import ReadUserSerializer
 from . import models
 
@@ -13,18 +12,11 @@ class ApplicationDateSerializer(serializers.ModelSerializer):
 
 
 class ApplicantDocumentSerializer(serializers.ModelSerializer):
+    """ The user_id is the same as applicant due to their OneToOne relationship"""
     class Meta:
         model = models.ApplicantDocument
-        fields = ['qualification', 'graduation_year', 'major', 'manor', 'institution', 'country', 'county',
+        fields = ['applicant', 'qualification', 'graduation_year', 'major', 'manor', 'institution', 'country', 'county',
                   'cgpa', 'degree', 'application_letter', 'community_letter', 'reference_letter', 'resume', 'police_clearance']
-
-    def create(self, validated_data):
-        user_id = self.context['user_id']
-        applicant = models.Applicant.objects.get(user_id=user_id)
-        instance = models.ApplicantDocument.objects.create(
-            applicant=applicant, **validated_data)
-
-        return instance
 
 
 class ApplicantAddressSerializer(serializers.ModelSerializer):
@@ -46,15 +38,8 @@ class ApplicantSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = models.Applicant
-        fields = ['birth_date', 'gender', 'religion', 'county', 'image',
+        fields = ['user', 'birth_date', 'gender', 'religion', 'county', 'image',
                   'id_number', 'status', 'rejection_reason']
-
-    def create(self, validated_data):
-        user = User.objects.get(id=self.context['user_id'])
-        applicant = models.Applicant.objects.create(
-            user=user, **validated_data)
-
-        return applicant
 
 
 class ReadApplicantSerializer(serializers.ModelSerializer):
@@ -73,7 +58,7 @@ class ReadApplicantSerializer(serializers.ModelSerializer):
         return applicant.birth_date.strftime('%B %d, %Y')
 
     def get_age(self, applicant):
-        today = date.today() 
+        today = date.today()
         b_date = applicant.birth_date
 
         age = today.year - b_date.year - \

@@ -43,21 +43,24 @@ class TestApplicant:
 
     The serializer that was used to post is that same serializer 
     that is use to return the response. Get request serializer only use for get request
+    I using 1 for 'user' because I'm assuming he's the first user.
     """
 
-    def payload(self):
+    def payload(self, religion='Christian', gender='Male', county='Bong', birth_date='2020-01-22'):
+        """ 
+        Without Model Baker I'll have to create ApplicantDate instance first, 
+        although it's not included in the serializer it's a mandatory 
+        field and its instance needs to exist before the automation 
+        can happen in the Applicant save method
         """
-        Without the use of baker.make I'll have to manually provide the value
-        for application_date which is a related model in Applicant model. It is 
-        a mandatory field but its value is automated in Applicant save method. 
-        """
-        data = baker.make(Applicant)
+        baker.make(Applicant)
         return {
-            'religion': data.religion,
+            'user': 1,
+            'religion': religion,
             'image': create_image_file(),
-            'gender': data.gender,
-            'birth_date': data.birth_date,
-            'county': data.county
+            'gender': gender,
+            'birth_date': birth_date,
+            'county': county,
         }
 
     def test_if_authenticated_user_can_post_applicant_return_201(self, post, api_client):
@@ -165,21 +168,9 @@ class TestApplicant:
     #     assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_if_data_is_invalid_return_400(self, post, api_client):
-        """ Although this test will fail if the data is valid; however,
-            instead of returning 'assert 201 == 400' error, it will 
-            return a misleading error message about ApplicationDate.
-        """
-        data = {
-            'religion': '',
-            'image': create_image_file(),
-            'gender': 'Male',
-            'birth_date': '2004-03-23',
-            'county': 'Bong'
-        }
-
         post(USERS_ENDPOINT, user_payload())
         api_client.credentials(HTTP_AUTHORIZATION=JWT + USER_TOKEN)
-        response = post(APPLICANT_ENDPOINT, data)
+        response = post(APPLICANT_ENDPOINT, self.payload(gender=''))
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -260,7 +251,7 @@ class TestApplicantDocument:
 
     def test_if_authenticated_user_can_post_document_return_201(self, post, api_client):
         """ See this class for the comment"""
-        # applicant = TestApplicant() 
+        # applicant = TestApplicant()
         # app_payload = applicant.applicant_payload()
         # print('********* APPLICANT DICT ', app_payload)
 
