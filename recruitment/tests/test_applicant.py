@@ -5,6 +5,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
 from model_bakery import baker
 
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 from conftest import JWT, USER_TOKEN, USERS_ENDPOINT, user_payload
 from recruitment.models import Applicant
 
@@ -174,3 +176,18 @@ class TestApplicant:
         response = post(APPLICANT_ENDPOINT, data)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+# from io import BytesIO
+# from reportlab.lib.pagesizes import letter
+# from reportlab.pdfgen import canvas
+
+def create_pdf_file():
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    c.drawString(100, 750, "Hello, this is a test PDF file!")
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+class TestApplicantDocument:
+    """"""
