@@ -60,12 +60,13 @@ class ApplicantSerializer(serializers.ModelSerializer):
 class ReadApplicantSerializer(serializers.ModelSerializer):
     user = ReadUserSerializer()
     document = ApplicantDocumentSerializer()
+    address = ApplicantAddressSerializer()
     birth_date = serializers.SerializerMethodField()
     age = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Applicant
-        fields = ['user', 'document', 'age', 'birth_date', 'gender', 'religion', 'county', 'image',
+        fields = ['user', 'document', 'address', 'age', 'birth_date', 'gender', 'religion', 'county', 'image',
                   'id_number', 'status', 'rejection_reason']
 
     def get_birth_date(self, applicant):

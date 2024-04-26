@@ -33,7 +33,7 @@ class ApplicantViewSet(ModelViewSet):  # You must apply permissions
     proxy they MUST use the applicant credentials to login.
     """
     queryset = models.Applicant.objects.select_related(
-        'user', 'document').all()
+        'user', 'document', 'address').all()
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -126,3 +126,10 @@ class ApplicantDocumentViewSet(ModelViewSet):
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ApplicantAddressViewSet(ModelViewSet):
+    """ The applicant id is included in the request data """
+    queryset = models.ApplicantAddress.objects.select_related(
+        'applicant').all()
+    serializer_class = serializers.ApplicantAddressSerializer
