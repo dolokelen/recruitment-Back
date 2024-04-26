@@ -260,7 +260,7 @@ class TestApplicantDocument:
 
     def test_if_authenticated_user_can_post_document_return_201(self, post, api_client):
         """ See this class for the comment"""
-        # applicant = TestApplicant()
+        # applicant = TestApplicant() 
         # app_payload = applicant.applicant_payload()
         # print('********* APPLICANT DICT ', app_payload)
 
