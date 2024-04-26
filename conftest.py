@@ -72,7 +72,6 @@ def group_instance(post, get, get_all, api_client):
 
     GROUPS_ENDPOINT = '/core/groups/'
     PERMISSIONS_ENDPOINT = '/core/permissions/'
-
     user_resp = post(USERS_ENDPOINT, user_payload())
     api_client.credentials(HTTP_AUTHORIZATION=JWT + USER_TOKEN)
     group_resp = post(GROUPS_ENDPOINT, {'name': 'a'})

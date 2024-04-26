@@ -1,12 +1,12 @@
 import pytest
 from PIL import Image
 from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
 from model_bakery import baker
 
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 from conftest import JWT, USER_TOKEN, USERS_ENDPOINT, user_payload
 from recruitment.models import Applicant
 
@@ -37,6 +37,8 @@ class TestApplicant:
     THIS TEST WILL FIAIL WHEN I APPLY PERMISSIONS WHICH I'LL DO LATER!
     Applicant has OneToOne relationship with User. 
     All views require authentication by REST_FRAMEWORK DEFAULT_PERMISSION_CLASSES SETTING.
+    If you don't want field validation use Model Baker else add the fields manually.
+    baker.make(User, email='mecom') Baker considers the email as valid.
     """
 
     def applicant_payload(self):
@@ -181,6 +183,7 @@ class TestApplicant:
 # from reportlab.lib.pagesizes import letter
 # from reportlab.pdfgen import canvas
 
+
 def create_pdf_file():
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
@@ -189,5 +192,44 @@ def create_pdf_file():
     buffer.seek(0)
     return buffer
 
+
+@pytest.mark.django_db
 class TestApplicantDocument:
-    """"""
+    """ 
+    If you don't want field validation use Model Baker else add the fields manually.
+    baker.make(User, email='mecom') Baker considers the email as valid.
+    """
+
+    def applicant_payload(self):
+        """ Country default is Liberia so it's not included."""
+        return {
+            'institution': 'Doriam University',
+            'major': 'Math',
+            'Manor': 'Physics',
+            'graduation_year': 2020,
+            'qualification': 'Bachelor',
+            'county': 'Bong',
+            'cgpa': 3.8,
+            'applicant_id': 11,
+            'degree': create_pdf_file(),
+            'police_clearance': create_pdf_file(),
+            'resume': create_pdf_file(),
+            'community_letter': create_pdf_file(),
+            'reference_letter': create_pdf_file(),
+            'application_letter': create_pdf_file(),
+        }
+
+    def test_if_authenticated_user_can_post_applicant_return_201(self, get, api_client):
+        """ See this class for the comment"""
+        from core.models import User
+        user = baker.make(User, email='mecom')
+        api_client.credentials(HTTP_AUTHORIZATION=JWT + USER_TOKEN)
+        user_resp = api_client.get(f'/core/users/{user.id}/')
+
+        applicant = baker.make(Applicant)
+        response = get(APPLICANT_ENDPOINT, applicant.user.id)
+        # instance = Applicant.objects.get(user_id=user_resp.data['id'])
+        print("********************", user)
+        assert response.status_code == status.HTTP_200_OK
+        assert user.id > 0
+        assert user_resp.data['email'] == 'mecom'

@@ -12,8 +12,10 @@ GROUPS_ENDPOINT = '/core/groups/'
 @pytest.mark.django_db
 class TestGroup:
     """
-        Anonymous users can't retrieve group so they can't perform 
-        put or delete request becasue one must get a group_id before...
+    Anonymous users can't retrieve group so they can't perform 
+    put or delete request becasue one must get a group_id before...
+    If you don't want field validation use Model Baker else add the fields manually.
+    baker.make(User, email='mecom'), Baker considers the email as valid.
     """
 
     def test_if_authenticated_user_can_create_group_return_201(self, post, api_client):

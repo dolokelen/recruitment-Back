@@ -11,6 +11,11 @@ PERMISSIONS_ENDPOINT = '/core/permissions/'
 
 @pytest.mark.django_db
 class TestPermission:
+    """
+    If you don't want field validation use Model Baker else add the fields manually.
+    baker.make(User, email='mecom'), Baker considers the email as valid.
+    """
+
     def test_if_permissions_can_be_added_to_group(self, post, api_client, get, get_all):
         post(USERS_ENDPOINT, user_payload())
         api_client.credentials(HTTP_AUTHORIZATION=JWT + USER_TOKEN)

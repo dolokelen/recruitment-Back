@@ -8,6 +8,8 @@ APPLICATION_DATE_ENDPOINT = '/recruitment/application-dates/'
 @pytest.mark.django_db
 class TestApplicationDate:
     """
+    If you don't want field validation use Model Baker else add the fields manually.
+    baker.make(User, email='mecom'), Baker considers the email as valid.
     All views require authentication by REST_FRAMEWORK DEFAULT_PERMISSION_CLASSES SETTING.
     """
 

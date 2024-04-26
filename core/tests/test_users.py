@@ -13,6 +13,8 @@ TOKEN_ENDPOINT = '/auth/jwt/create/'
 class TestUser:
     """
     Anonymous users can send post request at this users user to register.
+    If you don't want field validation use Model Baker else add the fields manually.
+    baker.make(User, email='mecom'), Baker considers the email as valid.
     """
 
     def test_if_anonymous_user_can_register_return_201(self, post):
