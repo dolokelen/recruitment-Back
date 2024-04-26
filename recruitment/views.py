@@ -115,10 +115,14 @@ class ApplicantDocumentViewSet(ModelViewSet):
             'county': data.pop('county')[0],
             'graduation_year': data.pop('graduation_year')[0],
             'degree': data.pop('degree')[0],
-            'application_letter': data.pop('appLetter')[0],
-            'reference_letter': data.pop('refLetter')[0],
-            'community_letter': data.pop('commLetter')[0],
-            'police_clearance': data.pop('policeClearance')[0],
+            'application_letter': data.pop('application_letter')[0],
+            'reference_letter': data.pop('reference_letter')[0],
+            'community_letter': data.pop('community_letter')[0],
+            # 'application_letter': data.pop('appLetter')[0],
+            # 'reference_letter': data.pop('refLetter')[0],
+            # 'community_letter': data.pop('commLetter')[0],
+            # 'police_clearance': data.pop('policeClearance')[0],
+            'police_clearance': data.pop('police_clearance')[0],
             'resume': data.pop('resume')[0]
         }
         serializer = self.get_serializer(data=document_data)

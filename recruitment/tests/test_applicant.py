@@ -8,7 +8,7 @@ from rest_framework import status
 from model_bakery import baker
 
 from conftest import JWT, USER_TOKEN, USERS_ENDPOINT, user_payload
-from recruitment.models import Applicant
+from recruitment.models import Applicant, ApplicantDocument
 
 
 APPLICANT_ENDPOINT = '/recruitment/applicants/'
@@ -37,11 +37,15 @@ class TestApplicant:
     THIS TEST WILL FIAIL WHEN I APPLY PERMISSIONS WHICH I'LL DO LATER!
     Applicant has OneToOne relationship with User. 
     All views require authentication by REST_FRAMEWORK DEFAULT_PERMISSION_CLASSES SETTING.
+
     If you don't want field validation use Model Baker else add the fields manually.
     baker.make(User, email='mecom') Baker considers the email as valid.
+
+    The serializer that was used to post is that same serializer 
+    that is use to return the response. Get request serializer only use for get request
     """
 
-    def applicant_payload(self):
+    def payload(self):
         """
         Without the use of baker.make I'll have to manually provide the value
         for application_date which is a related model in Applicant model. It is 
@@ -60,7 +64,7 @@ class TestApplicant:
         """ See this class for the comment"""
         user_resp = post(USERS_ENDPOINT, user_payload())
         api_client.credentials(HTTP_AUTHORIZATION=JWT + USER_TOKEN)
-        response = post(APPLICANT_ENDPOINT, self.applicant_payload())
+        response = post(APPLICANT_ENDPOINT, self.payload())
         instance = Applicant.objects.get(user_id=user_resp.data['id'])
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -69,7 +73,7 @@ class TestApplicant:
     def test_if_anonymous_user_cannot_post_applicant_return_401(self, post):
         """ See this class for the comment"""
         user_resp = post(USERS_ENDPOINT, user_payload())
-        response = post(APPLICANT_ENDPOINT, self.applicant_payload())
+        response = post(APPLICANT_ENDPOINT, self.payload())
 
         assert user_resp.data['id'] > 0
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -78,7 +82,7 @@ class TestApplicant:
         """ See this class for the comment"""
         user_resp = post(USERS_ENDPOINT, user_payload())
         api_client.credentials(HTTP_AUTHORIZATION=JWT + USER_TOKEN)
-        response = post(APPLICANT_ENDPOINT, self.applicant_payload())
+        response = post(APPLICANT_ENDPOINT, self.payload())
         response = get(APPLICANT_ENDPOINT, user_resp.data['id'])
 
         assert response.status_code == status.HTTP_200_OK
@@ -93,7 +97,7 @@ class TestApplicant:
         """
         post(USERS_ENDPOINT, user_payload())
         api_client.credentials(HTTP_AUTHORIZATION=JWT + USER_TOKEN)
-        response = post(APPLICANT_ENDPOINT, self.applicant_payload())
+        response = post(APPLICANT_ENDPOINT, self.payload())
         response = get_all(APPLICANT_ENDPOINT)
 
         assert response.status_code == status.HTTP_200_OK
@@ -108,7 +112,7 @@ class TestApplicant:
 
         user_res = post(USERS_ENDPOINT, user_payload())
         api_client.credentials(HTTP_AUTHORIZATION=JWT + USER_TOKEN)
-        response = post(APPLICANT_ENDPOINT, self.applicant_payload())
+        response = post(APPLICANT_ENDPOINT, self.payload())
         response = patch(APPLICANT_ENDPOINT, user_res.data['id'], data)
 
         assert response.status_code == status.HTTP_200_OK
@@ -118,7 +122,7 @@ class TestApplicant:
         """ See the this class for comment """
         user_res = post(USERS_ENDPOINT, user_payload())
         api_client.credentials(HTTP_AUTHORIZATION=JWT + USER_TOKEN)
-        response = post(APPLICANT_ENDPOINT, self.applicant_payload())
+        response = post(APPLICANT_ENDPOINT, self.payload())
         response = delete(APPLICANT_ENDPOINT, user_res.data['id'])
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -179,9 +183,10 @@ class TestApplicant:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-# from io import BytesIO
-# from reportlab.lib.pagesizes import letter
-# from reportlab.pdfgen import canvas
+
+# ------------------------ ApplicantDocument ---------------
+
+APP_DOCUMENT_ENDPOINT = '/recruitment/applicant-documents/'
 
 
 def create_pdf_file():
@@ -193,6 +198,7 @@ def create_pdf_file():
     return buffer
 
 
+@pytest.mark.skip
 @pytest.mark.django_db
 class TestApplicantDocument:
     """ 
@@ -200,17 +206,19 @@ class TestApplicantDocument:
     baker.make(User, email='mecom') Baker considers the email as valid.
     """
 
-    def applicant_payload(self):
-        """ Country default is Liberia so it's not included."""
+    def document_payload(self):
+        from core.models import User
+        data = baker.make(ApplicantDocument)
+        user = baker.make(User)
         return {
-            'institution': 'Doriam University',
-            'major': 'Math',
-            'Manor': 'Physics',
-            'graduation_year': 2020,
-            'qualification': 'Bachelor',
-            'county': 'Bong',
-            'cgpa': 3.8,
-            'applicant_id': 11,
+            'institution': data.institution,
+            'major': data.manor,
+            'manor': data.manor,
+            'graduation_year': data.graduation_year,
+            'qualification': data.qualification,
+            'county': data.county,
+            'country': data.country,
+            'cgpa': data.cgpa,
             'degree': create_pdf_file(),
             'police_clearance': create_pdf_file(),
             'resume': create_pdf_file(),
@@ -218,7 +226,101 @@ class TestApplicantDocument:
             'reference_letter': create_pdf_file(),
             'application_letter': create_pdf_file(),
         }
+        # return {
+        #     'institution': 'Doriam University',
+        #     'major': 'Math',
+        #     'manor': 'Physics',
+        #     'graduation_year': 2020,
+        #     'qualification': 'Bachelor',
+        #     'county': 'Bong',
+        #     'country': 'Liberia',
+        #     'cgpa': 3.8,
+        #     'degree': create_pdf_file(),
+        #     'police_clearance': create_pdf_file(),
+        #     'resume': create_pdf_file(),
+        #     'community_letter': create_pdf_file(),
+        #     'reference_letter': create_pdf_file(),
+        #     'application_letter': create_pdf_file(),
+        # }
 
-    def test_if_authenticated_user_can_post_applicant_return_201(self, get, api_client):
+    def applicant_payload(self):
+        """
+        Without the use of baker.make I'll have to manually provide the value
+        for application_date which is a related model in Applicant model. It is 
+        a mandatory field but its value is automated in Applicant save method. 
+        """
+        data = baker.make(Applicant)
+        return {
+            'religion': data.religion,
+            'image': create_image_file(),
+            'gender': data.gender,
+            'birth_date': data.birth_date,
+            'county': data.county
+        }
+
+    def test_if_authenticated_user_can_post_document_return_201(self, post, api_client):
         """ See this class for the comment"""
-        
+        # applicant = TestApplicant()
+        # app_payload = applicant.applicant_payload()
+        # print('********* APPLICANT DICT ', app_payload)
+
+        user_resp = post(USERS_ENDPOINT, user_payload())
+        api_client.credentials(HTTP_AUTHORIZATION=JWT + USER_TOKEN)
+        applicant_res = post(APPLICANT_ENDPOINT, self.applicant_payload())
+        # print('********* APPLICANT RESPONSE ', applicant_res.data)
+        applicant = Applicant.objects.get(user_id=user_resp.data['id'])
+        # data = self.document_payload()['applicant_id'] = applicant_res.data['user_id'] # the ApplicantSerializer fields for creation does not include user and it is using that same serializer to return a response although there is a serializer for get request. So it raises KeyError user_id
+        # Replace the document_payload with applicant.user.id
+        data = self.document_payload()['applicant_id'] = applicant.user.id
+        # data = self.document_payload().update({'applicant_id': applicant.user.id}) ##Give error related to FormData
+        print('********* DOCUMENT DATA ',
+              self.document_payload().update({'applicant_id': user_resp.data['id']}))
+        # In DocumentVieSet I got the user_id from the request obj so this test is of user_id when posting Document and user_id is not in the serializer so I can't add it to document_payload. I'm testing Address since its applicant_id is in the serializer. I will come back here when done.
+        response = post(APP_DOCUMENT_ENDPOINT, self.document_payload())
+
+        document = ApplicantDocument.objects.get(
+            applicant_id=applicant_res.data['user_id'])
+
+        assert response.status_code == status.HTTP_201_CREATED
+        # assert document.applicant.id == applicant_res.data['user_id']
+
+
+# ---------------------- ApplicantAddress -------------------
+APP_ADDRESS_ENDPOINT = '/recruitment/applicant-address/'
+
+
+@pytest.mark.skip
+@pytest.mark.django_db
+class TestApplicantAddress:
+    """ ApplicantDocument has OneToOne relationship to Applicant 
+        The serializer that was used to post is that same serializer 
+        that is use to return the response. Get request serializer only use for get request
+    """
+
+    def payload(self):
+        """ Country default value is Liberia that's it's not included """
+        return {
+            'applicant': 1,
+            'county': 'Bong',
+            'district': 1,
+            'community': 'A',
+            'house_address': 'ABC'
+        }
+
+    def test_create_address(self, post, api_client):
+        """ 
+        If you instantiate TestApplicant here all of its tests will run
+        thus causing unique constraint error for 1-1 relationship when 
+        you attempt to post to that same endpoint with the same payload.
+        But when instantiated in a request method it is use as value not TestClass. 
+
+        See this class for generic comment
+        """
+        user_resp = post(USERS_ENDPOINT, user_payload())
+        api_client.credentials(HTTP_AUTHORIZATION=JWT + USER_TOKEN)
+        post(APPLICANT_ENDPOINT, TestApplicant().payload())
+        applicant = Applicant.objects.get(user_id=user_resp.data['id'])
+        response = post(APP_ADDRESS_ENDPOINT, self.payload())
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['applicant'] == applicant.user.id
