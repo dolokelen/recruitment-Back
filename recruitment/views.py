@@ -27,12 +27,13 @@ class ApplicationDateViewSet(Permission):
     serializer_class = serializers.ApplicationDateSerializer
 
 
-class ApplicantViewSet(ModelViewSet): #You must apply permissions
+class ApplicantViewSet(ModelViewSet):  # You must apply permissions
     """
     Only applicant should post, if someone wants to 
     proxy they MUST use the applicant credentials to login.
     """
-    queryset = models.Applicant.objects.select_related('user').all()
+    queryset = models.Applicant.objects.select_related(
+        'user', 'document').all()
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -87,5 +88,41 @@ class ApplicantViewSet(ModelViewSet): #You must apply permissions
 
 
 class ApplicantDocumentViewSet(ModelViewSet):
-    queryset = models.ApplicantDocument.objects.select_related('applicant').all()
+    queryset = models.ApplicantDocument.objects.select_related(
+        'applicant').all()
     serializer_class = serializers.ApplicantDocumentSerializer
+
+    def get_serializer_context(self):
+        """
+        The user who is posting the data user_id is use to associate
+        applicant document with user.
+        """
+        return {'user_id': self.request.user.id}
+
+    def create(self, request, *args, **kwargs):
+        """
+        I'm using FormData to post because of the files(binary) and 
+        each field is placed in a list
+        """
+        data = request.data.copy()
+        document_data = {
+            'cgpa': data.pop('cgpa')[0],
+            'qualification': data.pop('qualification')[0],
+            'institution': data.pop('institution')[0],
+            'major': data.pop('major')[0],
+            'manor': data.pop('manor')[0],
+            'country': data.pop('country')[0],
+            'county': data.pop('county')[0],
+            'graduation_year': data.pop('graduation_year')[0],
+            'degree': data.pop('degree')[0],
+            'application_letter': data.pop('appLetter')[0],
+            'reference_letter': data.pop('refLetter')[0],
+            'community_letter': data.pop('commLetter')[0],
+            'police_clearance': data.pop('policeClearance')[0],
+            'resume': data.pop('resume')[0]
+        }
+        serializer = self.get_serializer(data=document_data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
