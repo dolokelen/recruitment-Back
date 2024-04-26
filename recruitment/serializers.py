@@ -72,7 +72,7 @@ class ReadApplicantSerializer(serializers.ModelSerializer):
         return applicant.birth_date.strftime('%B %d, %Y')
 
     def get_age(self, applicant):
-        today = date.today()
+        today = date.today() 
         b_date = applicant.birth_date
 
         age = today.year - b_date.year - \
