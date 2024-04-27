@@ -257,7 +257,7 @@ class TestApplicantDocument:
             'resume': create_pdf_file(),
             'community_letter': create_pdf_file(),
             'reference_letter': create_pdf_file(),
-            'application_letter': create_pdf_file(),
+            'application_letter': create_pdf_file(), 
         }
 
     def test_if_authenticated_user_can_post_document_return_201(self, post, api_client):
