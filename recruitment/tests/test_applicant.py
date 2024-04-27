@@ -1,4 +1,5 @@
 import pytest
+import io
 from PIL import Image
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
@@ -34,24 +35,36 @@ def create_image_file():
 @pytest.mark.django_db
 class TestApplicant:
     """
-    THIS TEST WILL FIAIL WHEN I APPLY PERMISSIONS WHICH I'LL DO LATER!
+    THIS TEST WILL FAIL WHEN I APPLY PERMISSIONS WHICH I'LL DO LATER!
     Applicant has OneToOne relationship with User. 
+
     All views require authentication by REST_FRAMEWORK DEFAULT_PERMISSION_CLASSES SETTING.
+    Pytest uses our 'models.py, serializers.py, views.py, urls.py' 
+    but it doesn't commit the Test data to our actual database.
 
-    If you don't want field validation use Model Baker else add the fields manually.
-    baker.make(User, email='mecom') Baker considers the email as valid.
+    Just like 'views.py', the serializer that was used to post 
+    is the same serializer that is used to return post response,
+    meaning only fields included in that serializer will be in the 
+    response object. But if you've a serializer for a GET request
+    you can send a GET request to that endpoint.
 
-    The serializer that was used to post is that same serializer 
-    that is use to return the response. Get request serializer only use for get request
-    I using 1 for 'user' because I'm assuming he's the first user.
+    If you pass this 'TestApplicant().payload()' DIRECTLY as argument 
+    to a 'post, put, patch' method you'll get the data [payload], 
+    otherwiser, all tests in TestApplicant will be executed before 
+    your test is executed and this can case KeyError for OneToOne or 
+    unique fields.
+
+    If you don't care about fields validations OR if model 'A' has a
+    relationship to your model and model 'A' instance is being AUTOMATED
+    in your model save method then use 'baker.make(YourModel)' this
+    will create model 'A' and its intended AUTOMATION will work. 
+
+    baker.make(User, email='mecom'), Baker considers the email as valid.
     """
 
     def payload(self, religion='Christian', gender='Male', county='Bong', birth_date='2020-01-22'):
         """ 
-        Without Model Baker I'll have to create ApplicantDate instance first, 
-        although it's not included in the serializer it's a mandatory 
-        field and its instance needs to exist before the automation 
-        can happen in the Applicant save method
+        I using 1 for 'user' because I'm assuming he's the first user.
         """
         baker.make(Applicant)
         return {
@@ -181,99 +194,83 @@ APP_DOCUMENT_ENDPOINT = '/recruitment/applicant-documents/'
 
 
 def create_pdf_file():
-    buffer = BytesIO()
-    c = canvas.Canvas(buffer, pagesize=letter)
-    c.drawString(100, 750, "Hello, this is a test PDF file!")
+    # Create an in-memory PDF file
+    pdf_buffer = io.BytesIO()
+    c = canvas.Canvas(pdf_buffer, pagesize=letter)
+
+    # Draw some text on the PDF
+    c.drawString(100, 750, "Hello, this is a PDF file generated dynamically!")
+
+    # Save the PDF
     c.save()
-    buffer.seek(0)
-    return buffer
+
+    # Move the pointer at the beginning of the file for the entire data to be read
+    pdf_buffer.seek(0)
+
+    # Create a Django SimpleUploadedFile object from the PDF buffer
+    uploaded_file = SimpleUploadedFile(
+        'test_pdf.pdf', pdf_buffer.read(), content_type='application/pdf')
+
+    return uploaded_file
 
 
-@pytest.mark.skip
 @pytest.mark.django_db
 class TestApplicantDocument:
     """ 
-    If you don't want field validation use Model Baker else add the fields manually.
-    baker.make(User, email='mecom') Baker considers the email as valid.
+    All views require authentication by REST_FRAMEWORK DEFAULT_PERMISSION_CLASSES SETTING.
+    Pytest uses our 'models.py, serializers.py, views.py, urls.py' 
+    but it doesn't commit the Test data to our actual database.
+
+    Just like 'views.py', the serializer that was used to post 
+    is the same serializer that is used to return post response,
+    meaning only fields included in that serializer will be in the 
+    response object. But if you've a serializer for a GET request
+    you can send a GET request to that endpoint.
+
+    If you pass this 'TestApplicant().payload()' DIRECTLY as argument 
+    to a 'post, put, patch' method you'll get the data [payload], 
+    otherwiser, all tests in TestApplicant will be executed before 
+    your test is executed and this can case KeyError for OneToOne or 
+    unique fields.
+
+    If you don't care about fields validations OR if model 'A' has a
+    relationship to your model and model 'A' instance is being AUTOMATED
+    in your model save method then use 'baker.make(YourModel)' this
+    will create model 'A' and its intended AUTOMATION will work. 
+
+    baker.make(User, email='mecom'), Baker considers the email as valid.
     """
 
-    def document_payload(self):
-        from core.models import User
-        data = baker.make(ApplicantDocument)
-        user = baker.make(User)
+    def payload(self):
         return {
-            'institution': data.institution,
-            'major': data.manor,
-            'manor': data.manor,
-            'graduation_year': data.graduation_year,
-            'qualification': data.qualification,
-            'county': data.county,
-            'country': data.country,
-            'cgpa': data.cgpa,
-            'degree': create_pdf_file(),
+            'applicant': 1,
+            'institution': 'Doriam University',
+            'major': 'Math',
+            'manor': 'Physics',
+            'graduation_year': 2020,
+            'qualification': 'Bachelor',
+            'county': 'Bong',
+            'country': 'Liberia',
+            'cgpa': 3.8,
             'police_clearance': create_pdf_file(),
+            'degree': create_pdf_file(),
             'resume': create_pdf_file(),
             'community_letter': create_pdf_file(),
             'reference_letter': create_pdf_file(),
             'application_letter': create_pdf_file(),
         }
-        # return {
-        #     'institution': 'Doriam University',
-        #     'major': 'Math',
-        #     'manor': 'Physics',
-        #     'graduation_year': 2020,
-        #     'qualification': 'Bachelor',
-        #     'county': 'Bong',
-        #     'country': 'Liberia',
-        #     'cgpa': 3.8,
-        #     'degree': create_pdf_file(),
-        #     'police_clearance': create_pdf_file(),
-        #     'resume': create_pdf_file(),
-        #     'community_letter': create_pdf_file(),
-        #     'reference_letter': create_pdf_file(),
-        #     'application_letter': create_pdf_file(),
-        # }
-
-    def applicant_payload(self):
-        """
-        Without the use of baker.make I'll have to manually provide the value
-        for application_date which is a related model in Applicant model. It is 
-        a mandatory field but its value is automated in Applicant save method. 
-        """
-        data = baker.make(Applicant)
-        return {
-            'religion': data.religion,
-            'image': create_image_file(),
-            'gender': data.gender,
-            'birth_date': data.birth_date,
-            'county': data.county
-        }
 
     def test_if_authenticated_user_can_post_document_return_201(self, post, api_client):
         """ See this class for the comment"""
-        # applicant = TestApplicant()
-        # app_payload = applicant.applicant_payload()
-        # print('********* APPLICANT DICT ', app_payload)
-
         user_resp = post(USERS_ENDPOINT, user_payload())
         api_client.credentials(HTTP_AUTHORIZATION=JWT + USER_TOKEN)
-        applicant_res = post(APPLICANT_ENDPOINT, self.applicant_payload())
-        # print('********* APPLICANT RESPONSE ', applicant_res.data)
+        applicant_res = post(APPLICANT_ENDPOINT, TestApplicant().payload())
         applicant = Applicant.objects.get(user_id=user_resp.data['id'])
-        # data = self.document_payload()['applicant_id'] = applicant_res.data['user_id'] # the ApplicantSerializer fields for creation does not include user and it is using that same serializer to return a response although there is a serializer for get request. So it raises KeyError user_id
-        # Replace the document_payload with applicant.user.id
-        data = self.document_payload()['applicant_id'] = applicant.user.id
-        # data = self.document_payload().update({'applicant_id': applicant.user.id}) ##Give error related to FormData
-        print('********* DOCUMENT DATA ',
-              self.document_payload().update({'applicant_id': user_resp.data['id']}))
-        # In DocumentVieSet I got the user_id from the request obj so this test is of user_id when posting Document and user_id is not in the serializer so I can't add it to document_payload. I'm testing Address since its applicant_id is in the serializer. I will come back here when done.
-        response = post(APP_DOCUMENT_ENDPOINT, self.document_payload())
-
-        document = ApplicantDocument.objects.get(
-            applicant_id=applicant_res.data['user_id'])
+        response = post(APP_DOCUMENT_ENDPOINT, self.payload())
+        document = ApplicantDocument.objects.get(applicant=applicant.user.id)
 
         assert response.status_code == status.HTTP_201_CREATED
-        # assert document.applicant.id == applicant_res.data['user_id']
+        assert document.applicant.user.id == applicant_res.data['user']
 
 
 # ---------------------- ApplicantAddress -------------------
