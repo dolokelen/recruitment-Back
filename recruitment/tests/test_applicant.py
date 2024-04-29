@@ -390,7 +390,7 @@ class TestApplicantAddress:
         you attempt to post to that same endpoint with the same payload.
         But when instantiated in a request method it is use as value not TestClass. 
 
-        See this class for generic comment
+        See this class for generic comment 
         """
         user_resp = post(USERS_ENDPOINT, user_payload())
         api_client.credentials(HTTP_AUTHORIZATION=JWT + USER_TOKEN)
