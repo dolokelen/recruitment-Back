@@ -1,7 +1,8 @@
 import pytest
 from rest_framework.test import APIClient
 
-USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE0MzQxMzc1LCJpYXQiOjE3MTQxNjg1NzUsImp0aSI6IjE5OWYxMmFjNDZmNjRiMjg5ZmFiN2JlNWMwZTJjZmE4IiwidXNlcl9pZCI6MX0.VhLEo-CBuRmzC_3qYjcBnJZK92UD2m7PRzIrQQ5nnQQ'
+# This access token has to be superuser. User will NOT have superuser status.
+USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE0NTM1NzU3LCJpYXQiOjE3MTQzNjI5NTcsImp0aSI6IjI3MWRiMzYyN2ZhNjRlNDM4ZDFhNDJhZmQ2NGMwMzExIiwidXNlcl9pZCI6MX0.sww4HGLDl8n76B0zWFLsv--CY4ryUxfHgPrGmg0JAZM'
 
 JWT = 'JWT '
 USERS_ENDPOINT = '/auth/users/'
