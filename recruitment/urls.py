@@ -10,6 +10,12 @@ router.register('applicant-documents', views.ApplicantDocumentViewSet)
 router.register('applicant-address', views.ApplicantAddressViewSet)
 router.register('applicant-contacts', views.ApplicantContactViewSet)
 
+applicant_router = routers.NestedDefaultRouter(
+    router, 'applicants', lookup='applicant')
+# Only for GETTING applicant contacts.
+applicant_router.register('contacts', views.ApplicantContactViewSet)
+
 urlpatterns = [
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    path('', include(applicant_router.urls)),
 ]
