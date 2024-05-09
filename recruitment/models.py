@@ -8,10 +8,11 @@ from .validators import (
     validate_district
 )
 from .utilities import (
-    image_upload_path, degree_upload_path,
-    community_letter_upload_path,
-    reference_letter_upload_path, application_upload_path,
-    resume_upload_path, police_clearance_upload_path,
+    image_upload_path, degree_upload_path, emp_degree_upload_path,
+    community_letter_upload_path, emp_community_letter_upload_path,
+    reference_letter_upload_path, emp_reference_letter_upload_path, 
+    application_upload_path, emp_application_upload_path,
+    resume_upload_path, emp_resume_upload_path, police_clearance_upload_path,
     tor_upload_path, applicant_id_number_generator,
     pyp_id_number_generator
 )
@@ -313,6 +314,9 @@ class RejectedApplication(models.Model):
 
 
 class Document(QualificationChoice):
+    """
+    Refactor the common fields of EmployeeDocument model and this!
+    """
     # validate the length [4] of this field
     graduation_year = models.PositiveIntegerField(validators=[validate_year])
     major = models.CharField(max_length=100)
@@ -352,7 +356,29 @@ class PypDocument(Document):
                                         FileExtensionValidator(allowed_extensions=['pdf'])])
 
 
-class EmployeeDocument(Document):
+class EmployeeDocument(QualificationChoice):
+    """
+    The file upload is using the instance id and so I can't use
+    one function to get the instance id in utilities.py 
+    Refactor the common fields of Document model and this!
+    """
+    graduation_year = models.PositiveIntegerField(validators=[validate_year])
+    major = models.CharField(max_length=100)
+    manor = models.CharField(max_length=100)
+    institution = models.CharField(max_length=255)
+    country = models.CharField(max_length=100)
+    county = models.CharField(max_length=100)  # providence/state
+    degree = models.FileField(upload_to=emp_degree_upload_path, validators=[
+                              FileExtensionValidator(allowed_extensions=['pdf'])])
+    cgpa = models.DecimalField(max_digits=3, decimal_places=2)
+    application_letter = models.FileField(upload_to=emp_application_upload_path, validators=[
+                                          FileExtensionValidator(allowed_extensions=['pdf'])])
+    community_letter = models.FileField(upload_to=emp_community_letter_upload_path, validators=[
+                                        FileExtensionValidator(allowed_extensions=['pdf'])])
+    reference_letter = models.FileField(upload_to=emp_reference_letter_upload_path, validators=[
+                                        FileExtensionValidator(allowed_extensions=['pdf'])])
+    resume = models.FileField(upload_to=emp_resume_upload_path, validators=[
+                              FileExtensionValidator(allowed_extensions=['pdf'])])
     employee = models.ForeignKey(
         Employee, on_delete=models.CASCADE, related_name='documents')
 

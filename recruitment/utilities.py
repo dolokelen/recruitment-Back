@@ -66,6 +66,46 @@ def reference_letter_upload_path(instance, filename):
     return file_path
 
 
+def emp_degree_upload_path(instance, filename):
+    instance_id = str(instance.employee.user.id)
+    _, extension = os.path.splitext(filename)
+    file_path = f'recruitment/degree/{instance_id}{extension}'
+
+    return file_path
+
+
+def emp_application_upload_path(instance, filename):
+    instance_id = str(instance.employee.user.id)
+    _, extension = os.path.splitext(filename)
+    file_path = f'recruitment/application/{instance_id}{extension}'
+
+    return file_path
+
+
+def emp_community_letter_upload_path(instance, filename):
+    instance_id = str(instance.employee.user.id)
+    _, extension = os.path.splitext(filename)
+    file_path = f'recruitment/community-letter/{instance_id}{extension}'
+
+    return file_path
+
+
+def emp_resume_upload_path(instance, filename):
+    instance_id = str(instance.employee.user.id)
+    _, extension = os.path.splitext(filename)
+    file_path = f'recruitment/resume/{instance_id}{extension}'
+
+    return file_path
+
+
+def emp_reference_letter_upload_path(instance, filename):
+    instance_id = str(instance.employee.user.id)
+    _, extension = os.path.splitext(filename)
+    file_path = f'recruitment/reference-letter/{instance_id}{extension}'
+
+    return file_path
+
+
 def applicant_id_number_generator():
     with connection.cursor() as cursor:
         cursor.execute(

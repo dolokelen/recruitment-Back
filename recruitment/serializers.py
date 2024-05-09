@@ -66,3 +66,59 @@ class ReadApplicantSerializer(serializers.ModelSerializer):
             ((today.month, today.day) < (b_date.month, b_date.day))
 
         return age
+
+
+class EmployeeSerializer(serializers.ModelSerializer):
+    """
+    County represents the birth county of the employee
+    """
+    class Meta:
+        model = models.Employee
+        fields = ['user', 'birth_date', 'gender', 'religion', 'image',
+                  'qualification', 'employment', 'position', 'supervisor', 'salary']
+
+
+class EmployeeDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.EmployeeDocument
+        fields = ['id', 'employee', 'qualification', 'graduation_year', 'major', 'manor', 'institution', 'country', 'county',
+                  'cgpa', 'degree', 'application_letter', 'community_letter', 'reference_letter', 'resume']
+
+
+class EmployeeAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.EmployeeAddress
+        fields = ['employee', 'country', 'county',
+                  'district', 'community', 'house_address']
+
+
+class EmployeeContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.EmployeeContact
+        fields = ['id', 'employee', 'phone']
+
+
+class ReadEmployeeSerializer(serializers.ModelSerializer):
+    user = ReadUserSerializer()
+    documents = EmployeeDocumentSerializer(many=True)
+    contacts = EmployeeContactSerializer(many=True)
+    address = EmployeeAddressSerializer()
+    birth_date = serializers.SerializerMethodField()
+    age = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.Employee
+        fields = ['user', 'documents', 'address', 'contacts', 'age', 'birth_date', 'gender', 'religion', 'image',
+                  'county', 'qualification', 'employment', 'position', 'supervisor', 'salary']
+
+    def get_birth_date(self, emp):
+        return emp.birth_date.strftime('%B %d, %Y')
+
+    def get_age(self, emp):
+        today = date.today()
+        b_date = emp.birth_date
+
+        age = today.year - b_date.year - \
+            ((today.month, today.day) < (b_date.month, b_date.day))
+
+        return age
