@@ -1,7 +1,8 @@
 from datetime import date
+from django.db import transaction
 from rest_framework import serializers
 
-from core.serializers import ReadUserSerializer
+from core.serializers import ReadUserSerializer, UserCreateSerializer
 from . import models
 
 
@@ -72,6 +73,20 @@ class EmployeeSerializer(serializers.ModelSerializer):
     """
     County represents the birth county of the employee
     """
+    user = UserCreateSerializer()
+
+    @transaction.atomic()
+    def create(self, validated_data):
+        user_data = validated_data.pop('user')
+        user_serializer = UserCreateSerializer(data=user_data)
+
+        if user_serializer.is_valid(raise_exception=True):
+            user = user_serializer.create(user_serializer.validated_data)
+            instance = models.Employee.objects.create(
+                user=user, **validated_data)
+
+            return instance
+
     class Meta:
         model = models.Employee
         fields = ['user', 'birth_date', 'gender', 'religion', 'image',

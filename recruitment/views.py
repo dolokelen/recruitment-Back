@@ -164,8 +164,15 @@ class EmployeeViewSet(Permission):
         each field is placed in a list
         """
         data = request.data.copy()
+        user_data = {
+            'email': data.pop('email')[0],
+            'first_name': data.pop('first_name')[0],
+            'last_name': data.pop('last_name')[0],
+            'password': 'Django@123',
+            'confirm_password': 'Django@123'
+        }
         employee_data = {
-            'user': data.pop('user')[0],
+            'user': user_data,
             'birth_date': data.pop('birth_date')[0],
             'gender': data.pop('gender')[0],
             'religion': data.pop('religion')[0],
