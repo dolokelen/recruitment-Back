@@ -257,5 +257,9 @@ class EmployeeAddressViewSet(ModelViewSet):
 
 
 class EmployeeContactViewSet(ModelViewSet):
-    queryset = models.EmployeeContact.objects.select_related('employee')
     serializer_class = serializers.EmployeeContactSerializer
+
+    def get_queryset(self):
+        employee_id = self.kwargs['employee_pk']
+        query = models.EmployeeContact.objects.filter(employee_id=employee_id).select_related('employee')
+        return query
