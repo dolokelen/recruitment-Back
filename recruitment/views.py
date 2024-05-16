@@ -3,6 +3,7 @@ from django.conf import settings
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
 from core import permissions
 from . import models
@@ -149,6 +150,15 @@ class ApplicantContactViewSet(ModelViewSet):
     serializer_class = serializers.ApplicantContactSerializer
 
 
+class ApplicantProfileViewSet(ModelViewSet):
+    http_method_names = ['get']
+    serializer_class = serializers.ReadApplicantSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = models.Applicant.objects.filter(user_id=self.kwargs['pk'])
+        return queryset
+
 class EmployeeViewSet(Permission):
     queryset = models.Employee.objects.select_related(
         'user', 'address').prefetch_related('contacts', 'documents').all()
@@ -263,3 +273,13 @@ class EmployeeContactViewSet(ModelViewSet):
         employee_id = self.kwargs['employee_pk']
         query = models.EmployeeContact.objects.filter(employee_id=employee_id).select_related('employee')
         return query
+
+
+class EmployeeProfileViewSet(ModelViewSet):
+    http_method_names = ['get']
+    serializer_class = serializers.ReadEmployeeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = models.Employee.objects.filter(user_id=self.kwargs['pk'])
+        return queryset
