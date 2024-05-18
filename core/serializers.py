@@ -57,10 +57,14 @@ class SimpleGroupSerializer(serializers.ModelSerializer):
 
 class UserGroupsSerializer(serializers.ModelSerializer):
     groups = SimpleGroupSerializer(many=True)
+    full_name = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'first_name', 'last_name', 'groups']
+        fields = ['id', 'email', 'first_name', 'last_name', 'full_name', 'groups']
+
+    def get_full_name(self, user):
+        return f'{user.first_name} {user.last_name}'
 
 
 class AddGroupsToUserSerializer(serializers.ModelSerializer):
