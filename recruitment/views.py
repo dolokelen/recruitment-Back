@@ -1,13 +1,15 @@
 import os
+from django.db.models import Count
 from django.conf import settings
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
 from core import permissions
-from . import models
-from . import serializers
+from . import models, serializers, filters
 
 
 class Permission(ModelViewSet):
@@ -159,7 +161,14 @@ class ApplicantProfileViewSet(ModelViewSet):
         queryset = models.Applicant.objects.filter(user_id=self.kwargs['pk'])
         return queryset
 
+
 class EmployeeViewSet(Permission):
+    """ Searching and filtering by county is not working maybe due to inconsistacy of the county data!!! """
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = filters.EmployeeFilter
+    search_fields = ['religion', 'gender',
+                     'qualification', 'employment', 'county']
+
     queryset = models.Employee.objects.select_related(
         'user', 'address').prefetch_related('contacts', 'documents').all()
 
@@ -271,7 +280,8 @@ class EmployeeContactViewSet(ModelViewSet):
 
     def get_queryset(self):
         employee_id = self.kwargs['employee_pk']
-        query = models.EmployeeContact.objects.filter(employee_id=employee_id).select_related('employee')
+        query = models.EmployeeContact.objects.filter(
+            employee_id=employee_id).select_related('employee')
         return query
 
 
@@ -283,3 +293,10 @@ class EmployeeProfileViewSet(ModelViewSet):
     def get_queryset(self):
         queryset = models.Employee.objects.filter(user_id=self.kwargs['pk'])
         return queryset
+
+
+class EmployeeSupervisorViewSet(ModelViewSet):
+    """ Return all supervisors NOT supervisees """
+    queryset = models.Employee.objects.annotate(num_supervisees=Count(
+        'supervisees')).filter(num_supervisees__gt=0).select_related('user')
+    serializer_class = serializers.EmployeeSupervisorSerializer

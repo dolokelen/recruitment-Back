@@ -20,6 +20,7 @@ applicant_router.register('contacts', views.ApplicantContactViewSet)
 router.register('employees', views.EmployeeViewSet)
 router.register('employee-documents', views.EmployeeDocumentViewSet)
 router.register('employee-address', views.EmployeeAddressViewSet)
+router.register('employee-supervisors', views.EmployeeSupervisorViewSet, basename='emp-supervisors')
 router.register('employee-profile',
                 views.EmployeeProfileViewSet, basename='emp-profile')
 employee_router = routers.NestedDefaultRouter(

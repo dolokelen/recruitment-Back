@@ -127,7 +127,7 @@ class Employee(Person, QualificationChoice):
     employment = models.CharField(max_length=255, choices=EMPLOYMENT_CHOICES)
     position = models.CharField(max_length=255)
     supervisor = models.ForeignKey(
-        'self', null=True, blank=True, on_delete=models.SET_NULL)
+        'self', null=True, blank=True, on_delete=models.SET_NULL, related_name='supervisees')
     salary = models.DecimalField(max_digits=6, decimal_places=2)
     exit_date = models.DateField(null=True)
 
@@ -455,7 +455,7 @@ class PypAddress(Address):
 class EmployeeAddress(Address):
     employee = models.OneToOneField(
         Employee, primary_key=True, on_delete=models.CASCADE, related_name='address')
-
+    
 
 class Department(models.Model):
     name = models.CharField(max_length=100)

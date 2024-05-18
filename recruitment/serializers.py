@@ -137,3 +137,22 @@ class ReadEmployeeSerializer(serializers.ModelSerializer):
             ((today.month, today.day) < (b_date.month, b_date.day))
 
         return age
+
+
+class EmployeeSupervisorSerializer(serializers.ModelSerializer):
+    """ 
+    Return all supervisors NOT supervisees. 
+    I'm not using ReadUserSerializer because it will add additional {}
+    """
+    id = serializers.SerializerMethodField()
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.Employee
+        fields = ['id', 'full_name']
+
+    def get_id(self, emp):
+        return emp.user.id
+
+    def get_full_name(self, emp):
+        return f'{emp.user.first_name} {emp.user.last_name}'
