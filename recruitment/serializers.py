@@ -27,7 +27,7 @@ class ApplicationDateSerializer(serializers.ModelSerializer):
 
         return instance
     
-    
+
 class ReadApplicationDateSerializer(serializers.ModelSerializer):
     open_date = serializers.SerializerMethodField()
     close_date = serializers.SerializerMethodField()
@@ -40,6 +40,7 @@ class ReadApplicationDateSerializer(serializers.ModelSerializer):
    
     def get_close_date(self, obj):
         return obj.close_date.strftime('%B %d, %Y')
+
 
 class ApplicantDocumentSerializer(serializers.ModelSerializer):
     """ The user_id is the same as applicant due to their OneToOne relationship"""
@@ -71,7 +72,12 @@ class ApplicantSerializer(serializers.ModelSerializer):
         fields = ['user', 'birth_date', 'gender', 'religion', 'county', 'image',
                   'id_number', 'status', 'rejection_reason']
 
-
+    def create(self, validated_data):
+        instance = models.Applicant.objects.create(**validated_data)
+        initial_stage = models.ApplicationStage.objects.order_by('order').first()
+        models.Screening.objects.create(status='Under review', stage=initial_stage, applicant=instance)
+        
+        
 class ReadApplicantSerializer(serializers.ModelSerializer):
     user = ReadUserSerializer()
     document = ApplicantDocumentSerializer()

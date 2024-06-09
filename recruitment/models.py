@@ -76,14 +76,22 @@ class ApplicationDate(models.Model):
     is_current = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
+        """ 
+        Checking for update and create operations b/c this method is 
+        called regardless and if I don't check for update scenario, 
+        when updating an existing instance that instance 'is_current' 
+        can be set to True. I don't know why that happens b/c I'm  
+        explicitly checking for 'self._state.adding' which is meant to 
+        check whether the model is creating new instance  
+        """
         with transaction.atomic():
             if self._state.adding:
                 self.is_current = True
                 ApplicationDate.objects.exclude(
                     pk=self.pk).update(is_current=False)
-            elif not self.is_current:
+            elif not self.is_current:#when you're updating an existing instance just save it
                 return super().save(*args, **kwargs)
-            else:
+            else:#when you're updating the current instance just save it
                 pass
 
         return super().save(*args, **kwargs)
@@ -94,7 +102,7 @@ class Applicant(Person):
         max_length=255, default=applicant_id_number_generator)
     application_date = models.ForeignKey(
         ApplicationDate, on_delete=models.PROTECT, related_name='applicants')
-    status = models.CharField(max_length=100, default='Under review')# will be updated when creating an instance of ApplicantStatus
+    status = models.CharField(max_length=100, default='Under review')# will be updated when creating an instance of Screening
     rejection_reason = models.CharField(max_length=100, null=True, blank=True)# '', for updating applicant profile at frontend
     apply_at = models.DateTimeField(auto_now_add=True)
 
@@ -151,17 +159,36 @@ class ApplicationStage(models.Model):
         ApplicationDate, on_delete=models.PROTECT, related_name='stages')
     applicants = models.ManyToManyField(Applicant, related_name='stages')  
     order = models.PositiveIntegerField()#use to move qualify applicants to the next stage[1,2,3...]
+    is_current = models.BooleanField(default=False)
+    #is_current - to get the current stage; I could rely on 'order[biggest N0]' 
+    # and applicant_date[open_date] but it's possible that 2024 has two 
+    # recruitments and also open_date has month as well how do I know 
+    # the exact month for the current recruitment. 
 
     def save(self, *args, **kwargs):
+        """ 
+        Checking for update and create operations b/c this method is 
+        called regardless and if I don't check for update scenario, 
+        when updating an existing instance that instance 'is_current' 
+        can be set to True. I don't know why that happens b/c I'm  
+        explicitly checking for 'self._state.adding' which is meant to 
+        check whether the model is creating new instance  
+        """
         with transaction.atomic():
             if self._state.adding:
+                self.is_current = True
+                Screening.objects.exclude(id=self.id).update(is_current=False)
                 instance = ApplicationDate.objects.get(is_current=True)
                 self.application_date = instance
+            elif not self.is_current:#when you're updating an existing instance just save it
+                return super().save(*args, **kwargs)
+            else:#when you're updating the current instance just save it
+                pass
 
             return super().save(*args, **kwargs)
 
 
-class ApplicantStatus(models.Model):
+class Screening(models.Model):
     """ Return instances associated with the requested status """
     #Update Applicant -> 'status, rejection_reason' after creating your instance
     STATUS_CHOICES = (
@@ -187,8 +214,10 @@ class ApplicantStatus(models.Model):
     rejection_reason = models.CharField(
         max_length=18, choices=REJECTION_REASON_CHOICES, null=True, blank=True)
     other_rejection_reason = models.TextField(null=True, blank=True)
+    applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE, related_name='screenings')
+    stage = models.ForeignKey(ApplicationStage, on_delete=models.PROTECT, related_name='screenings')
     process_by = models.ForeignKey(
-        Employee, on_delete=models.PROTECT, related_name='stages')
+        Employee, on_delete=models.PROTECT, null=True, blank=True, related_name='screenings')#nullable b/c when applicants themselvies are registering I've to automatically add them to this model for feather processing later by an employee but at this point I don't want to say they're process by employee 1
     process_at = models.DateTimeField(auto_now_add=True)
 
 
