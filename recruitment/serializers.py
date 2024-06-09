@@ -39,8 +39,8 @@ class ApplicantSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = models.Applicant
-        fields = ['user', 'birth_date', 'gender', 'religion', 'county', 'image',
-                  'id_number', 'status', 'rejection_reason']
+        fields = ['user', 'birth_date', 'gender', 'religion', 
+                  'county', 'image', 'id_number', 'status']
 
 
 class ReadApplicantSerializer(serializers.ModelSerializer):
@@ -54,7 +54,7 @@ class ReadApplicantSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Applicant
         fields = ['user', 'document', 'address', 'contacts', 'age', 'birth_date', 'gender', 'religion', 'county', 'image',
-                  'id_number', 'status', 'rejection_reason']
+                  'id_number', 'status']
 
     def get_birth_date(self, applicant):
         return applicant.birth_date.strftime('%B %d, %Y')
