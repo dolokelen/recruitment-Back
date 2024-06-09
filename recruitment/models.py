@@ -196,25 +196,25 @@ class ApplicationStage(models.Model):
 
 
 # Use the 'pre_save and post_save' signals of ApplicationStage
-class ApplicantStatusAuditTrial(models.Model):
-    employee = models.ForeignKey(Employee, on_delete=models.PROTECT)
-    applicant = models.ForeignKey(
-        Applicant, on_delete=models.PROTECT, related_name='audits')
-    previous_status = models.CharField(max_length=255)
-    new_status = models.CharField(max_length=255)
-    action = models.CharField(max_length=255)
-    created_at = models.DateTimeField()
+# class ApplicantStatusAuditTrial(models.Model):
+#     employee = models.ForeignKey(Employee, on_delete=models.PROTECT)
+#     applicant = models.ForeignKey(
+#         Applicant, on_delete=models.PROTECT, related_name='audits')
+#     previous_status = models.CharField(max_length=255)
+#     new_status = models.CharField(max_length=255)
+#     action = models.CharField(max_length=255)
+#     created_at = models.DateTimeField()
 
 
-class ApplicationStageCompletedAuditTrial(models.Model):
-    employee = models.ForeignKey(Employee, on_delete=models.PROTECT)
-    application_stage = models.ForeignKey(
-        ApplicationStage, on_delete=models.PROTECT)
-    previous_is_cruitment_completed = models.BooleanField()
-    new_is_cruitment_completed = models.BooleanField()
-    # I just want to track the employee who change the
-    # is_recruitment_completed to True, b/c when this is done
-    # I'll delete some models instances which cannot be revert.
+# class ApplicationStageCompletedAuditTrial(models.Model):
+#     employee = models.ForeignKey(Employee, on_delete=models.PROTECT)
+#     application_stage = models.ForeignKey(
+#         ApplicationStage, on_delete=models.PROTECT)
+#     previous_is_cruitment_completed = models.BooleanField()
+#     new_is_cruitment_completed = models.BooleanField()
+#     # I just want to track the employee who change the
+#     # is_recruitment_completed to True, b/c when this is done
+#     # I'll delete some models instances which cannot be revert.
 
 
 class CohortSponsor(models.Model):
