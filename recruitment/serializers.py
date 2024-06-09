@@ -11,6 +11,35 @@ class ApplicationDateSerializer(serializers.ModelSerializer):
         model = models.ApplicationDate
         fields = ['id', 'open_date', 'close_date', 'is_current']
 
+    def create(self, validated_data):
+        instance =  models.ApplicationDate.objects.create(**validated_data)
+        application_stages = [
+            {'name': 'Publicity', 'order': 1},
+            {'name': 'Credential varification', 'order': 2},
+            {'name': 'Writen exams', 'order': 3},
+            {'name': 'Interview', 'order': 4},
+            {'name': 'Job readiness orientation', 'order': 5},
+            {'name': 'Placement', 'order': 6},
+        ]
+
+        for stage in application_stages:
+            models.ApplicationStage.objects.create(name=stage['name'], order=stage['order'])
+
+        return instance
+    
+    
+class ReadApplicationDateSerializer(serializers.ModelSerializer):
+    open_date = serializers.SerializerMethodField()
+    close_date = serializers.SerializerMethodField()
+    class Meta:
+        model = models.ApplicationDate
+        fields = ['id', 'open_date', 'close_date', 'is_current']
+    
+    def get_open_date(self, obj):
+        return obj.open_date.strftime('%B %d, %Y')
+   
+    def get_close_date(self, obj):
+        return obj.close_date.strftime('%B %d, %Y')
 
 class ApplicantDocumentSerializer(serializers.ModelSerializer):
     """ The user_id is the same as applicant due to their OneToOne relationship"""

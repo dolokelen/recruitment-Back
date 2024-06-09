@@ -26,9 +26,13 @@ class Permission(ModelViewSet):
 
 
 class ApplicationDateViewSet(Permission):
-    queryset = models.ApplicationDate.objects.all()
+    queryset = models.ApplicationDate.objects.order_by('-open_date')
     serializer_class = serializers.ApplicationDateSerializer
 
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return serializers.ReadApplicationDateSerializer
+        return super().get_serializer_class()
 
 class ApplicantViewSet(ModelViewSet):  # You must apply permissions
     """
