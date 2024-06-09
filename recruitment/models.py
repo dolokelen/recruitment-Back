@@ -95,6 +95,7 @@ class Applicant(Person):
     application_date = models.ForeignKey(
         ApplicationDate, on_delete=models.PROTECT, related_name='applicants')
     status = models.CharField(max_length=100, default='Under review')# will be updated when creating an instance of ApplicantStatus
+    rejection_reason = models.CharField(max_length=100, null=True, blank=True)# '', for updating applicant profile at frontend
     apply_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
@@ -162,7 +163,7 @@ class ApplicationStage(models.Model):
 
 class ApplicantStatus(models.Model):
     """ Return instances associated with the requested status """
-    #Update Applicant -> 'status' after creating your instance
+    #Update Applicant -> 'status, rejection_reason' after creating your instance
     STATUS_CHOICES = (
     ('Under review', 'Under review'),
     ('Pending', 'Pending'),
