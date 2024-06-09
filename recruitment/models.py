@@ -70,6 +70,7 @@ class Person(CountyChoice):
 
 
 class ApplicationDate(models.Model):
+    #Create all instances of ApplicationStage after creating your instance
     open_date = models.DateField()
     close_date = models.DateField()
     is_current = models.BooleanField(default=False)
@@ -93,8 +94,8 @@ class Applicant(Person):
         max_length=255, default=applicant_id_number_generator)
     application_date = models.ForeignKey(
         ApplicationDate, on_delete=models.PROTECT, related_name='applicants')
-    status = models.CharField(max_length=100, default='Under review')
-    rejection_reason = models.CharField(max_length=255, null=True, blank=True)
+    status = models.CharField(max_length=100, default='Under review')# will be updated when creating an instance of ApplicantStatus
+    apply_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
@@ -133,12 +134,9 @@ class Employee(Person, QualificationChoice):
 
 
 class ApplicationStage(models.Model):
-    STATUS_CHOICES = (
-        ('Under review', 'Under review'),
-        ('Pending', 'Pending'),
-        ('Unsuccessful', 'Unsuccessful'),
-        ('Successful', 'Successful'),
-    )
+    """
+    All instances are auto created any time a new of ApplicationDate is created.
+    """
     NAME_CHOICES = (
         ('Publicity', 'Publicity'),
         ('Credential varification', 'Credential varification'),
@@ -146,6 +144,30 @@ class ApplicationStage(models.Model):
         ('Interview', 'Interview'),
         ('Job readiness orientation', 'Job readiness orientation'),
         ('Placement', 'Placement')
+    )
+    name = models.CharField(max_length=25, choices=NAME_CHOICES)
+    application_date = models.ForeignKey(
+        ApplicationDate, on_delete=models.PROTECT, related_name='stages')
+    applicants = models.ManyToManyField(Applicant, related_name='stages')  
+    order = models.PositiveIntegerField()#use to move qualify applicants to the next stage[1,2,3...]
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            if self._state.adding:
+                instance = ApplicationDate.objects.get(is_current=True)
+                self.application_date = instance
+
+            return super().save(*args, **kwargs)
+
+
+class ApplicantStatus(models.Model):
+    """ Return instances associated with the requested status """
+    #Update Applicant -> 'status' after creating your instance
+    STATUS_CHOICES = (
+    ('Under review', 'Under review'),
+    ('Pending', 'Pending'),
+    ('Unsuccessful', 'Unsuccessful'),
+    ('Successful', 'Successful'),
     )
     REJECTION_REASON_CHOICES = (
         ('Police clearance', 'Police clearance'),
@@ -160,39 +182,13 @@ class ApplicationStage(models.Model):
         ('Disorderly conduct', 'Disorderly conduct'),
         ('Other', 'Other')
     )
-    name = models.CharField(max_length=25, choices=NAME_CHOICES)
     status = models.CharField(max_length=13, choices=STATUS_CHOICES)
-    application_date = models.ForeignKey(
-        ApplicationDate, on_delete=models.PROTECT, related_name='stages')
-    applicants = models.ManyToManyField(Applicant, related_name='stages')
     rejection_reason = models.CharField(
         max_length=18, choices=REJECTION_REASON_CHOICES, null=True, blank=True)
     other_rejection_reason = models.TextField(null=True, blank=True)
-    is_rejected = models.BooleanField(default=False)
-    is_current = models.BooleanField(default=False)
-    # Create signal to listen for any of the CURD operations and create an AuditTrial instance.
-    employee = models.ForeignKey(
+    process_by = models.ForeignKey(
         Employee, on_delete=models.PROTECT, related_name='stages')
-    created_at = models.DateTimeField(auto_now_add=True)
-    # This will allow me to delete all instances of this model
-    # for a particular recruitment cycle
-    is_recruitment_complemented = models.BooleanField(default=False)
-
-    def save(self, *args, **kwargs):
-        with transaction.atomic():
-            if self._state.adding:
-                self.is_current = True
-                previous_stage = ApplicationStage.objects.filter(
-                    is_current=True)
-                previous_stage.update(is_current=False)
-
-                instance = ApplicationDate.objects.get(is_current=True)
-                self.application_date = instance
-
-            if self.rejection_reason != 'Other':
-                self.other_rejection_reason = None
-
-            return super().save(*args, **kwargs)
+    process_at = models.DateTimeField(auto_now_add=True)
 
 
 # Use the 'pre_save and post_save' signals of ApplicationStage
