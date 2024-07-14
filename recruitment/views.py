@@ -1,5 +1,6 @@
 import os
-from django.db.models import Count
+from django.db import transaction
+from django.db.models import Count, Q
 from django.conf import settings
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
@@ -33,6 +34,7 @@ class ApplicationDateViewSet(Permission):
         if self.request.method == 'GET':
             return serializers.ReadApplicationDateSerializer
         return super().get_serializer_class()
+
 
 class ApplicantViewSet(ModelViewSet):  # You must apply permissions
     """
@@ -304,3 +306,63 @@ class EmployeeSupervisorViewSet(ModelViewSet):
     queryset = models.Employee.objects.annotate(num_supervisees=Count(
         'supervisees')).filter(num_supervisees__gt=0).select_related('user')
     serializer_class = serializers.EmployeeSupervisorSerializer
+
+
+class QualifyApplicantViewSet(ModelViewSet):
+    http_method_names = ['get']
+    """Don't show any attr that can identify an applicant for transparency purpose"""
+    queryset = models.Applicant.objects.filter(Q(status='Under review') | Q(
+        status='Pending'), stages__is_current=True).select_related('user', 'document')
+    serializer_class = serializers.ReadQualifyApplicantSerializr
+
+
+class ApplicantScreeningViewSet(ModelViewSet):
+    serializer_class = serializers.ApplicantScreeningSerializer
+
+    @transaction.atomic()
+    def create(self, request, *args, **kwargs):
+        for data in request.data.get('applicants', []):
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            applicant = models.Applicant.objects.get(user_id=data['applicant'])
+            applicant.status = data['status']
+            applicant.save()
+
+        # If you're on the final stage[if order=6] all applicants with 'Pending'
+            # status should be updated to 'Successful'
+            # One ways is to get the MAX Screening Model ID[Final Screening]
+            # and go to the Applicant Model and get all Applicants whose 
+            # Screening Model ID is that Id and then update all those applicants
+            # status to 'Successful' and save them.
+            
+
+        previous_stage = models.ApplicationStage.objects.get(is_current=True)
+        next_order = previous_stage.order + 1
+        previous_stage.is_current = False
+        previous_stage.save()
+        # ⚠👿⬇
+        new_stage = models.ApplicationStage.objects.get(order=next_order)
+        new_stage.is_current = True
+        new_stage.save()
+
+        qualify_applicants = [app.user.id for app in models.Applicant.objects.exclude(
+            status__in=['Unsuccessful', 'Under review'])]
+        new_stage.applicants.add(*qualify_applicants)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        # Update the Applicant Model 'status' for each applicants
+        # Update the ApplicationStage using the 'order' and the 'is_current'
+        # get the current_stage and its 'order' then add 1
+        # to the current_stage 'order' and check if that 'order' exists
+        # that 'order' stage becomes the current_stage and the prevous
+        # stage 'is_current' should be updated to False. If the 'order'
+        # does not exist after adding 1 to it that means that's the
+        # final stage, therefore; Screening closed!!!!😍
+        # Create instances of Screening Model with this data.
+        # Add all applicants whose status is not 'Under review' and 'Unsuccessful'
+        # to the current ApplicantStage
+
+        # At the frontend prevent posting incomplete screening data

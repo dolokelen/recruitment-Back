@@ -12,9 +12,9 @@ class ApplicationDateSerializer(serializers.ModelSerializer):
         fields = ['id', 'open_date', 'close_date', 'is_current']
 
     def create(self, validated_data):
-        instance =  models.ApplicationDate.objects.create(**validated_data)
+        instance = models.ApplicationDate.objects.create(**validated_data)
         application_stages = [
-            {'name': 'Publicity', 'order': 1},
+            {'name': 'Publicity', 'order': 1, 'is_current': True},
             {'name': 'Credential varification', 'order': 2},
             {'name': 'Writen exams', 'order': 3},
             {'name': 'Interview', 'order': 4},
@@ -23,21 +23,22 @@ class ApplicationDateSerializer(serializers.ModelSerializer):
         ]
 
         for stage in application_stages:
-            models.ApplicationStage.objects.create(name=stage['name'], order=stage['order'])
+            models.ApplicationStage.objects.create(**stage)
 
         return instance
-    
+
 
 class ReadApplicationDateSerializer(serializers.ModelSerializer):
     open_date = serializers.SerializerMethodField()
     close_date = serializers.SerializerMethodField()
+
     class Meta:
         model = models.ApplicationDate
         fields = ['id', 'open_date', 'close_date', 'is_current']
-    
+
     def get_open_date(self, obj):
         return obj.open_date.strftime('%B %d, %Y')
-   
+
     def get_close_date(self, obj):
         return obj.close_date.strftime('%B %d, %Y')
 
@@ -74,10 +75,11 @@ class ApplicantSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         instance = models.Applicant.objects.create(**validated_data)
-        initial_stage = models.ApplicationStage.objects.order_by('order').first()
-        models.Screening.objects.create(status='Under review', stage=initial_stage, applicant=instance)
-        
-        
+        initial_stage = models.ApplicationStage.objects.get(is_current=True)
+        initial_stage.applicants.add(instance.user.id)
+        return instance
+
+
 class ReadApplicantSerializer(serializers.ModelSerializer):
     user = ReadUserSerializer()
     document = ApplicantDocumentSerializer()
@@ -191,3 +193,31 @@ class EmployeeSupervisorSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, emp):
         return f'{emp.user.first_name} {emp.user.last_name}'
+
+
+class ReadQualifyApplicantSerializr(serializers.ModelSerializer):
+    """Don't show any attr that can identify an applicant for transparency purpose"""
+    user = ReadUserSerializer()
+    document = ApplicantDocumentSerializer()
+    stage_name = serializers.SerializerMethodField()
+    stage_id = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.Applicant
+        fields = ['user', 'document', 'id_number', 'status', 'stage_name', 'stage_id']
+
+    def get_stage_name(self, applicant):
+        stage_name = applicant.stages.filter(is_current=True)[0].name
+        return stage_name if stage_name else ""
+    
+    def get_stage_id(self, applicant):
+        """ Use when posting applicant screening data"""
+        stage_id = applicant.stages.filter(is_current=True)[0].id
+        return stage_id if stage_id else 0
+
+
+class ApplicantScreeningSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Screening
+        fields = ['id', 'status', 'rejection_reason',
+                  'applicant', 'stage', 'process_by']

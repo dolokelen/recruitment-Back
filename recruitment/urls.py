@@ -5,8 +5,10 @@ from . import views
 router = routers.DefaultRouter()
 
 router.register('application-dates', views.ApplicationDateViewSet)
+router.register('application-stages', views.QualifyApplicantViewSet)
 
-router.register('applicants', views.ApplicantViewSet)
+router.register('applicant-screenings', views.ApplicantScreeningViewSet, basename='app-screenings')
+router.register('applicants', views.ApplicantViewSet, basename='apps')
 router.register('applicant-documents', views.ApplicantDocumentViewSet)
 router.register('applicant-address', views.ApplicantAddressViewSet)
 router.register('applicant-contacts', views.ApplicantContactViewSet)

@@ -167,23 +167,15 @@ class ApplicationStage(models.Model):
 
     def save(self, *args, **kwargs):
         """ 
-        Checking for update and create operations b/c this method is 
-        called regardless and if I don't check for update scenario, 
-        when updating an existing instance that instance 'is_current' 
-        can be set to True. I don't know why that happens b/c I'm  
-        explicitly checking for 'self._state.adding' which is meant to 
-        check whether the model is creating new instance  
+        To know the current stage when creating ApplicationStage instances
+        in ApplicationDate serializer, I'll make the first stage the current 
+        stage then after Screening applicants I will update the current 
+        stage to false and update the next stage as the current stage.
         """
         with transaction.atomic():
             if self._state.adding:
-                self.is_current = True
-                Screening.objects.exclude(id=self.id).update(is_current=False)
                 instance = ApplicationDate.objects.get(is_current=True)
                 self.application_date = instance
-            elif not self.is_current:#when you're updating an existing instance just save it
-                return super().save(*args, **kwargs)
-            else:#when you're updating the current instance just save it
-                pass
 
             return super().save(*args, **kwargs)
 
@@ -191,6 +183,8 @@ class ApplicationStage(models.Model):
 class Screening(models.Model):
     """ Return instances associated with the requested status """
     #Update Applicant -> 'status, rejection_reason' after creating your instance
+    #Update the next application_stage is_current to True
+    #[next_stage = ApplicationStage.objects.filter(is_current=True)]
     STATUS_CHOICES = (
     ('Under review', 'Under review'),
     ('Pending', 'Pending'),
@@ -199,7 +193,7 @@ class Screening(models.Model):
     )
     REJECTION_REASON_CHOICES = (
         ('Police clearance', 'Police clearance'),
-        ('National id', 'National ID'),
+        ('National ID', 'National ID'),
         ('Diploma', 'Diploma'),
         ('Transcript', 'Transcript'),
         ('Writen exams', 'Written exams'),
